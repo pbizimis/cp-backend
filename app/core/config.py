@@ -1,0 +1,4 @@
+API_NAME = "CP_API"
+VERSION = "0.0.1"
+API_PREFIX = "/api/v1"
+DEBUG = True
