@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-from app.api.model_routes import get
-from app.api.model_routes import post
+from app.api.routes import generation
+from app.api.routes import style_mixing
 
 router = APIRouter()
-router.include_router(get.router, tags=["Generation"], prefix="/get")
-router.include_router(post.router, tags=["Generation"], prefix="/post")
+router.include_router(generation.router, tags=["Generation"])
+router.include_router(style_mixing.router, tags=["Style Mixing"])

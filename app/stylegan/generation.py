@@ -1,0 +1,1 @@
+# stylegan2 logic for generation
