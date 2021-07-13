@@ -1,7 +1,5 @@
 from fastapi import APIRouter
-from app.api.routes import generation
-from app.api.routes import style_mixing
+from app.api.routes import stylegan2ada
 
 router = APIRouter()
-router.include_router(generation.router, tags=["Generation"])
-router.include_router(style_mixing.router, tags=["Style Mixing"])
+router.include_router(stylegan2ada.router, prefix="/stylegan2ada", tags=["StyleGan2 ADA"])
