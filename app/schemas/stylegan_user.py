@@ -21,7 +21,8 @@ class StyleGanUser:
     def generate_stylegan_image(self) -> None:
         self.image_blob = self.stylegan_model.generate()
     
-    async def save_stylegan_image(self) -> None:
+    async def save_stylegan_image(self) -> str:
         self.image_id = upload_blob("stylegan-images", self.image_blob)
         image_data = Image(url=self.image_id, auth0_id=self.user.id, method=self.stylegan_method_options)
         await save_image(self.db, self.user.id, image_data)
+        return self.image_id

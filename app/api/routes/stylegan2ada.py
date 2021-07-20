@@ -6,6 +6,7 @@ from app.schemas.stylegan_models import stylegan2_ada_models
 from app.schemas.stylegan_user import StyleGanUser
 from app.db.mongodb import get_db
 from motor.motor_asyncio import AsyncIOMotorClient
+from app.core.config import IMAGE_STORAGE_BASE_URL
 
 router = APIRouter()
 
@@ -22,11 +23,11 @@ async def generate_image(generation_options: Generation, db: AsyncIOMotorClient 
 
     stylegan_user = StyleGanUser(user, generation_options, StyleGan2ADA, db)
 
-    image_id = stylegan_user.generate_stylegan_image()
+    stylegan_user.generate_stylegan_image()
     
-    await stylegan_user.save_stylegan_image()
+    image_id = await stylegan_user.save_stylegan_image()
 
-    return {"message": image_id}
+    return {"image_url": IMAGE_STORAGE_BASE_URL + image_id}
 
 @router.get("/methods")
 def generate_image(generation_method: dict = Depends(generation_method), stylemix_method: dict = Depends(stylemix_method), user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
