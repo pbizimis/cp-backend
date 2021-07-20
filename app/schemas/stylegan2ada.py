@@ -1,6 +1,45 @@
 from pydantic import BaseModel
 from app.schemas.stylegan_models import stylegan2_ada_models, Model, StyleGanModel
 from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod
+from app.stylegan.load_model import load_stylegan2ada_model_from_pkl
+from app.stylegan.generation import generate_stylegan2ada_images
+
+
+class StyleGan2ADA(StyleGanModel):
+    
+    folder_path = "stylegan2_ada_models/"
+    loaded_models = {}
+
+    def __init__(self, model: Model, method_options: dict):
+        
+        self.model = self._load_model(model)
+        self.method_options =  method_options
+            
+    def _check_for_loaded_models(self, model: Model):
+        if model in self.loaded_models:
+            return self.loaded_models[model]
+        return False
+
+    def _load_model(self, model: Model):
+        
+        stylegan2ada_model = self._check_for_loaded_models(model)
+
+        if stylegan2ada_model:
+            return stylegan2ada_model
+        
+        stylegan2ada_model = load_stylegan2ada_model_from_pkl(self.folder_path, model)
+        self.loaded_models[model] = stylegan2ada_model
+
+        return stylegan2ada_model
+
+    def generate(self):
+
+        list_of_images = generate_stylegan2ada_images(self.model, self.method_options)
+
+        return list_of_images
+
+    def style_mix(self):
+        pass
 
 class Generation(BaseModel):
     model: Model
