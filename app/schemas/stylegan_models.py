@@ -19,13 +19,14 @@ class Model(BaseModel):
         return f"img{self.img}res{self.res}fid{self.fid}.pkl"
 
     @classmethod
-    def from_filename(cls, filename: str):
+    def from_filename(cls, filename: str, version: str):
         matcher = re.compile(r"img(?P<img>\d*)res(?P<res>\d*)fid(?P<fid>\d*)")
         if m := matcher.match(filename):
             return cls(
                 img=int(m.group("img")), 
                 res=int(m.group("res")), 
-                fid=int(m.group("fid"))
+                fid=int(m.group("fid")),
+                version=version[:-8] # [:-8] eliminates '_models/' from root path string
             )
 
     def __hash__(self):                                                         
@@ -41,6 +42,6 @@ class Models():
         return self.models
 
     def create_models(self):
-        return [Model.from_filename(filename) for filename in os.listdir(self.path)]
+        return [Model.from_filename(filename, self.path) for filename in os.listdir(self.path)]
 
 stylegan2_ada_models = Models("stylegan2_ada_models/")
