@@ -16,8 +16,14 @@ async def close_db() -> None:
 async def get_db() -> AsyncIOMotorClient:
     return client
 
-async def get_user_images(db_con: AsyncIOMotorClient, auth0_id: str, image_data: dict) -> None:
-    raise NotImplementedError
+async def get_user_images(db_con: AsyncIOMotorClient, auth0_id: str) -> list:
+    cursor = db_con[db_name][db_collection_images].find({"auth0_id": auth0_id})
+    all_user_images = []
+    async for image_data in cursor:
+        image = Image(**image_data)
+        all_user_images.append(image)
+
+    return all_user_images
 
 async def save_image(db_con: AsyncIOMotorClient, auth0_id: str, image_data: Image) -> None:
     await db_con[db_name][db_collection_images].insert_one(image_data.dict())
