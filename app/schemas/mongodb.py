@@ -7,4 +7,4 @@ class Image(BaseModel):
     url: str
     auth0_id: str
     creation_date: datetime = datetime.now(pytz.timezone("Europe/Berlin"))
-    stylegan_data: dict
+    method: dict

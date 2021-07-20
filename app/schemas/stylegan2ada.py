@@ -12,6 +12,7 @@ class StyleGan2ADA(StyleGanModel):
 
     def __init__(self, model: Model, method_options: dict):
         
+        model.version = self.__class__.__name__
         self.model = self._load_model(model)
         self.method_options =  method_options
             
@@ -42,10 +43,12 @@ class StyleGan2ADA(StyleGanModel):
         pass
 
 class Generation(BaseModel):
+    name: str = "Generation"
     model: Model
     truncation: float
 
 class StyleMix(BaseModel):
+    name: str = "StyleMix"
     model: Model
     images: list
 

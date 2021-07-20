@@ -3,6 +3,7 @@ import re
 from dataclasses import dataclass
 from pydantic import BaseModel
 from abc import ABC
+from typing import Optional
 
 class StyleGanModel(ABC):
     pass
@@ -11,6 +12,7 @@ class Model(BaseModel):
     img: int
     res: int
     fid: int
+    version: Optional[str]
 
     @property
     def filename(self) -> str:
