@@ -2,7 +2,7 @@ from fastapi_auth0 import Auth0User
 from app.schemas.stylegan_models import StyleGanModel
 from typing import Type
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.db.mongodb import save_image
+from app.db.mongodb import save_image, delete_image
 from app.schemas.mongodb import Image
 from app.db.google_cloud_storage import upload_blob
 

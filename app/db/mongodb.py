@@ -20,10 +20,7 @@ async def get_user_images(db_con: AsyncIOMotorClient, auth0_id: str, image_data:
     raise NotImplementedError
 
 async def save_image(db_con: AsyncIOMotorClient, auth0_id: str, image_data: Image) -> None:
-    pipeline = [
-        {"$match": {"auth0_id": auth0_id}},
-        {"$pop": {"recent_images": 1}},
-        {"$push": {"recent_images": image_data}}
-    ]
-    await db_con[db_name][db_collection_user].aggregate(pipeline)
     await db_con[db_name][db_collection_images].insert_one(image_data.dict())
+
+async def delete_image(db_con: AsyncIOMotorClient, auth0_id: str, url: str) -> None:
+    await db_con[db_name][db_collection_images].delete_one({"auth0_id": auth0_id, "url": url})
