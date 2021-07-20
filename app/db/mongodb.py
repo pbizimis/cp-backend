@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.schemas.mongodb import Image, User
+from app.schemas.mongodb import Image
 import os
 
 # database only connects with first query
@@ -15,12 +15,6 @@ async def close_db() -> None:
 
 async def get_db() -> AsyncIOMotorClient:
     return client
-
-async def create_user(db_con: AsyncIOMotorClient, auth0_id: str, image_data: dict) -> None:
-    raise NotImplementedError
-
-async def get_user(db_con: AsyncIOMotorClient, auth0_id: str, image_data: dict) -> None:
-    raise NotImplementedError
 
 async def get_user_images(db_con: AsyncIOMotorClient, auth0_id: str, image_data: dict) -> None:
     raise NotImplementedError
