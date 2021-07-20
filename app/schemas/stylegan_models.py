@@ -2,12 +2,20 @@ import os
 import re
 from dataclasses import dataclass
 from pydantic import BaseModel
+from abc import ABC
+
+class StyleGanModel(ABC):
+    pass
 
 class Model(BaseModel):
     img: int
     res: int
     fid: int
-    
+
+    @property
+    def filename(self) -> str:
+        return f"img{self.img}res{self.res}fid{self.fid}.pkl"
+
     @classmethod
     def from_filename(cls, filename: str):
         matcher = re.compile(r"img(?P<img>\d*)res(?P<res>\d*)fid(?P<fid>\d*)")
@@ -17,6 +25,9 @@ class Model(BaseModel):
                 res=int(m.group("res")), 
                 fid=int(m.group("fid"))
             )
+
+    def __hash__(self):                                                         
+        return hash((type(self),) + tuple(self.__dict__.values()))      
 
 class Models():
 

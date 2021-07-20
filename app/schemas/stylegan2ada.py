@@ -1,13 +1,13 @@
 from pydantic import BaseModel
-from app.schemas.stylegan_models import stylegan2_ada_models
+from app.schemas.stylegan_models import stylegan2_ada_models, Model, StyleGanModel
 from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod
 
 class Generation(BaseModel):
-    model: str
+    model: Model
     truncation: float
 
 class StyleMix(BaseModel):
-    model: str
+    model: Model
     images: list
 
 generation_method = StyleGanMethod(
