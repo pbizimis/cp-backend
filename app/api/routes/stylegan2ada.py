@@ -10,8 +10,15 @@ from app.core.config import IMAGE_STORAGE_BASE_URL
 router = APIRouter()
 
 @router.post("/stylemix")
-def style_mix_images(model: StyleMix, user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
-    return model
+async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
+
+    stylegan_user = StyleGanUser(user, stylemix_options, StyleGan2ADA, db)
+
+    stylegan_user.stylemix_stylegan_images()
+
+    image_id = await stylegan_user.save_stylegan_image()
+
+    return {"image_url": IMAGE_STORAGE_BASE_URL + image_id}
 
 @router.post("/generate")
 async def generate_image(generation_options: Generation, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"])):

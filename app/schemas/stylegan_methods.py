@@ -29,3 +29,9 @@ class Dropdown(BaseModel):
     place: int
     options: tuple
     default: int
+
+class Text(BaseModel):
+    type: str = "text"
+    name: str
+    place: int
+    default: str

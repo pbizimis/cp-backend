@@ -4,7 +4,7 @@ from typing import Type
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.db.mongodb import save_image, delete_image, get_user_images
 from app.schemas.mongodb import Image
-from app.db.google_cloud_storage import upload_blob
+from app.db.google_cloud_storage import upload_blob, download_blob
 
 class StyleGanUser:
 
@@ -20,6 +20,10 @@ class StyleGanUser:
 
     def generate_stylegan_image(self) -> None:
         self.image_blob = self.stylegan_model.generate()
+    
+    def stylemix_stylegan_images(self) -> None:
+        image_blobs = download_blob("stylegan-images", [self.stylegan_method_options.row_image, self.stylegan_method_options.col_image])
+        self.image_blob = self.stylegan_model.style_mix(image_blobs)
     
     async def save_stylegan_image(self) -> str:
         self.image_id = upload_blob("stylegan-images", self.image_blob)

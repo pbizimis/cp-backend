@@ -1,9 +1,10 @@
 from pydantic import BaseModel
 from app.schemas.stylegan_models import stylegan2_ada_models, Model, StyleGanModel
-from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod
+from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod, Text
 from app.stylegan.load_model import load_stylegan2ada_model_from_pkl
 from app.stylegan.generation import generate_stylegan2ada_images
-
+from app.stylegan.projection import run_projection
+from app.stylegan.style_mixing import generate_style_mix
 
 class StyleGan2ADA(StyleGanModel):
     
@@ -34,13 +35,13 @@ class StyleGan2ADA(StyleGanModel):
         return stylegan2ada_model
 
     def generate(self):
+        return generate_stylegan2ada_images(self.model, self.method_options)
 
-        list_of_images = generate_stylegan2ada_images(self.model, self.method_options)
 
-        return list_of_images
-
-    def style_mix(self):
-        pass
+    def style_mix(self, image_blobs):
+        projected_images = [run_projection(self.model, image_blob) for image_blob in image_blobs]
+        return generate_style_mix(self.model, self.method_options, projected_images)
+        
 
 class Generation(BaseModel):
     name: str = "Generation"
@@ -50,7 +51,10 @@ class Generation(BaseModel):
 class StyleMix(BaseModel):
     name: str = "StyleMix"
     model: Model
-    images: list
+    row_image: str
+    col_image: str
+    styles: str
+    truncation: float
 
 generation_method = StyleGanMethod(
     name="Generate",
@@ -66,6 +70,9 @@ stylemix_method = StyleGanMethod(
     description="Style mix different images.",
     method_options=(
         Dropdown(place=1, name="Model", options=stylegan2_ada_models.models, default=0),
-        Slider(place=2, name="Images", max=6, min=0, step=1, default=3)
+        Text(name="row_image", place=2, default=""),
+        Text(name="col_image", place=3, default=""),
+        Dropdown(place=4, name="Styles", options=("Coarse", "Middle", "Fine"), default=1),
+        Slider(place=5, name="Truncation", max=2, min=-2, step=0.1, default=1),
     )
 )
