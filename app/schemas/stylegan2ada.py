@@ -38,9 +38,8 @@ class StyleGan2ADA(StyleGanModel):
         return generate_stylegan2ada_images(self.model, self.method_options)
 
 
-    def style_mix(self, image_blobs):
-        projected_images = [run_projection(self.model, image_blob) for image_blob in image_blobs]
-        return generate_style_mix(self.model, self.method_options, projected_images)
+    def style_mix(self, row_image, col_image):
+        return generate_style_mix(self.model, self.method_options, row_image, col_image)
         
 
 class Generation(BaseModel):
