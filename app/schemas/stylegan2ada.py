@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from app.schemas.stylegan_models import stylegan2_ada_models, Model, StyleGanModel
-from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod, SeedOrImage
+from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod, SeedOrImage, Text
 from app.stylegan.load_model import load_stylegan2ada_model_from_pkl
 from app.stylegan.generation import generate_stylegan2ada_images
 from app.stylegan.projection import run_projection
@@ -46,6 +46,7 @@ class Generation(BaseModel):
     name: str = "Generation"
     model: Model
     truncation: float
+    seed: str
 
 class StyleMix(BaseModel):
     name: str = "StyleMix"
@@ -60,7 +61,8 @@ generation_method = StyleGanMethod(
     description="Generate random images or from a certain seed.",
     method_options=(
         Dropdown(place=1, name="Model", options=stylegan2_ada_models.models, default=0),
-        Slider(place=2, name="Truncation", max=2, min=-2, step=0.1, default=1)
+        Slider(place=2, name="Truncation", max=2, min=-2, step=0.1, default=1),
+        Text(place=3, name="Seed", default="")
     )
 )
 

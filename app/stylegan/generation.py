@@ -11,14 +11,16 @@ def generate_stylegan2ada_images(model, generation_options: dict):
     bytes_io_w = BytesIO()
     G = model
     truncation_psi = generation_options.truncation
+    seed = generation_options.seed
 
-    seed = random.randint(0,2**32-1) # 2**32-1 is the highest value
+    if not seed:
+        seed = random.randint(0,2**32-1) # 2**32-1 is the highest value
 
     device = torch.device('cpu')
 
     images = []
 
-    z = torch.from_numpy(np.random.RandomState(seed).randn(1, G.z_dim)).to(device)
+    z = torch.from_numpy(np.random.RandomState(int(seed)).randn(1, G.z_dim)).to(device)
     w = G.mapping(z, None, truncation_psi=truncation_psi, truncation_cutoff=8)
     img = G.synthesis(w, noise_mode='const', force_fp32=True)
 
