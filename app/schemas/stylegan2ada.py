@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from app.schemas.stylegan_models import stylegan2_ada_models, Model, StyleGanModel
-from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod, Text
+from app.schemas.stylegan_methods import Slider, Dropdown, StyleGanMethod, SeedOrImage
 from app.stylegan.load_model import load_stylegan2ada_model_from_pkl
 from app.stylegan.generation import generate_stylegan2ada_images
 from app.stylegan.projection import run_projection
@@ -51,7 +51,7 @@ class StyleMix(BaseModel):
     name: str = "StyleMix"
     model: Model
     row_image: str
-    col_image: str
+    column_image: str
     styles: str
     truncation: float
 
@@ -69,8 +69,8 @@ stylemix_method = StyleGanMethod(
     description="Style mix different images.",
     method_options=(
         Dropdown(place=1, name="Model", options=stylegan2_ada_models.models, default=0),
-        Text(name="row_image", place=2, default=""),
-        Text(name="col_image", place=3, default=""),
+        SeedOrImage(name="Row_Image", place=2, default=""),
+        SeedOrImage(name="Column_Image", place=3, default=""),
         Dropdown(place=4, name="Styles", options=("Coarse", "Middle", "Fine"), default=1),
         Slider(place=5, name="Truncation", max=2, min=-2, step=0.1, default=1),
     )

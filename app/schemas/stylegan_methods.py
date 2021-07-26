@@ -35,3 +35,9 @@ class Text(BaseModel):
     name: str
     place: int
     default: str
+
+class SeedOrImage(BaseModel):
+    type: str = "seed_or_image"
+    name: str
+    place: int
+    default: str

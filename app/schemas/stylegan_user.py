@@ -27,15 +27,15 @@ class StyleGanUser:
 
     def stylemix_stylegan_images(self) -> None:
         row_image = self.get_seed_or_image_vector(self.stylegan_method_options.row_image)
-        col_image = self.get_seed_or_image_vector(self.stylegan_method_options.col_image)
+        column_image = self.get_seed_or_image_vector(self.stylegan_method_options.column_image)
 
-        self.blobs = self.stylegan_model.style_mix(row_image, col_image)
+        self.blobs = self.stylegan_model.style_mix(row_image, column_image)
     
     async def save_stylegan_image(self) -> str:
         for key, blobs in self.blobs.items():
             image_blob, w_blob = blobs
             if not (image_blob and w_blob):
-                self.blobs[key] = self.stylegan_method_options.row_image if key == "row_image" else self.stylegan_method_options.col_image
+                self.blobs[key] = self.stylegan_method_options.row_image if key == "row_image" else self.stylegan_method_options.column_image
                 continue
             image_id = upload_blob("stylegan-images", image_blob)
             upload_blob("stylegan-images-vectors", w_blob, image_id)
