@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 def get_app() -> FastAPI:
     app = FastAPI(title=API_NAME, debug=DEBUG, version=VERSION)
 
+    app.include_router(router, prefix=API_PREFIX)
+    
     origins = ["http://localhost:3000", "https://webdesigan.com"]
 
     app.add_middleware(
@@ -16,7 +18,6 @@ def get_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    app.include_router(router, prefix=API_PREFIX)
     return app
 
 
