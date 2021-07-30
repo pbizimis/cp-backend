@@ -33,7 +33,7 @@ async def generate_image(generation_options: Generation, db: AsyncIOMotorClient 
     return image_id
 
 @router.get("/methods")
-def generate_image(generation_method: dict = Depends(generation_method), stylemix_method: dict = Depends(stylemix_method), user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
+def get_stylegan2ada_methods(generation_method: dict = Depends(generation_method), stylemix_method: dict = Depends(stylemix_method), user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
     return {
         "generation_method": generation_method,
         "stylemix_method": stylemix_method
