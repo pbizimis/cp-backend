@@ -10,9 +10,9 @@ from app.core.config import IMAGE_STORAGE_BASE_URL
 router = APIRouter()
 
 @router.post("/stylemix")
-async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
+async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
 
-    stylegan_user = StyleGanUser(user, db, StyleGan2ADA, stylemix_options)
+    stylegan_user = stylegan_user_class(user, db, StyleGan2ADA, stylemix_options)
 
     stylegan_user.stylemix_stylegan_images()
 
@@ -21,9 +21,9 @@ async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = 
     return image_ids
 
 @router.post("/generate")
-async def generate_image(generation_options: Generation, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
+async def generate_image(generation_options: Generation, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
 
-    stylegan_user = StyleGanUser(user, db, StyleGan2ADA, generation_options)
+    stylegan_user = stylegan_user_class(user, db, StyleGan2ADA, generation_options)
 
     stylegan_user.generate_stylegan_image()
     

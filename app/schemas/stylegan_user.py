@@ -44,6 +44,10 @@ class StyleGanUser:
             self.blobs[key] = image_id
         return self.blobs
 
+    @classmethod
+    def get_class(cls):
+        return cls    
+
     @staticmethod
     def get_seed_or_image_vector(image_string):
         if image_string.isdigit():
