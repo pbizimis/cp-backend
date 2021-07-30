@@ -9,7 +9,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 router = APIRouter()
 
 @router.get("/images")
-async def style_mix_images(db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
+async def user_images(db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
 
     stylegan_user = stylegan_user_class(user, db)
 
