@@ -8,25 +8,10 @@ import dnnlib
 import numpy as np
 import PIL.Image
 import torch
-
-def save_image_as_bytes(image):
-    buffer = BytesIO()
-    PIL.Image.fromarray(image, "RGB").save(buffer, format="JPEG")
-    return buffer.getvalue()
-
-def save_vector_as_bytes(vector):
-    buffer = BytesIO()
-    torch.save(vector, buffer)
-    return buffer.getvalue()
-
-def load_bytes_vector(bytes_vector):
-    buffer = BytesIO(bytes_vector)
-    return torch.load(buffer)
+from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_bytes_vector
 
 def generate_style_mix(model, stylemix_options, row_image, col_image):
 
-    bytes_io_image = BytesIO()
-    bytes_io_w = BytesIO()
     device = torch.device("cpu")
     G = model
     truncation_psi = stylemix_options.truncation
