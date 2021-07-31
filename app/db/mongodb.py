@@ -6,7 +6,6 @@ import os
 conn_str = f"mongodb+srv://admin:{os.environ['MONGOPW']}@cluster0.bgniv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 client = AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
 db_name = "development"
-db_collection_user = "users"
 db_collection_images = "images"
 
 
@@ -25,7 +24,7 @@ async def get_user_images(db_con: AsyncIOMotorClient, auth0_id: str) -> list:
 
     return all_user_images
 
-async def save_image(db_con: AsyncIOMotorClient, auth0_id: str, image_data: Image) -> None:
+async def save_image(db_con: AsyncIOMotorClient, image_data: Image) -> None:
     await db_con[db_name][db_collection_images].insert_one(image_data.dict())
 
 async def delete_image(db_con: AsyncIOMotorClient, auth0_id: str, url: str) -> None:
