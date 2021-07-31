@@ -25,7 +25,7 @@ async def get_user_images(db_con: AsyncIOMotorClient, auth0_id: str) -> list:
     return all_user_images
 
 async def save_image(db_con: AsyncIOMotorClient, image_data: Image) -> None:
-    await db_con[db_name][db_collection_images].insert_one(image_data.dict())
+    return await db_con[db_name][db_collection_images].insert_one(image_data.dict())
 
 async def delete_image(db_con: AsyncIOMotorClient, auth0_id: str, url: str) -> None:
-    await db_con[db_name][db_collection_images].delete_one({"auth0_id": auth0_id, "url": url})
+    return await db_con[db_name][db_collection_images].delete_one({"auth0_id": auth0_id, "url": url})
