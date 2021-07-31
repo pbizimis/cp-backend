@@ -40,7 +40,7 @@ class StyleGanUser:
             image_id = upload_blob("stylegan-images", image_blob)
             upload_blob("stylegan-images-vectors", w_blob, image_id)
             image_data = Image(url=image_id, auth0_id=self.user.id, method=self.stylegan_method_options)
-            await save_image(self.db, self.user.id, image_data)
+            await save_image(self.db, image_data)
             self.blobs[key] = image_id
         return self.blobs
 
