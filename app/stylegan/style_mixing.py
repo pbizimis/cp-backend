@@ -8,7 +8,7 @@ import dnnlib
 import numpy as np
 import PIL.Image
 import torch
-from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_bytes_vector, seeds_to_array_images, w_vector_to_image
+from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_bytes_vector, w_vector_to_image, seed_to_array_image
 
 def generate_style_mix(model, stylemix_options, row_image, col_image):
 
@@ -38,8 +38,8 @@ def generate_style_mix(model, stylemix_options, row_image, col_image):
 
         if isinstance(col_image, bytes) and isinstance(row_image, int):
             ws = load_bytes_vector(col_image)
-            col_seed = "proj_w"
             row_seed = row_image
+            col_seed = "proj_w"
             all_seeds = [row_seed]
 
         if isinstance(col_image, int) and isinstance(row_image, int):
@@ -47,34 +47,47 @@ def generate_style_mix(model, stylemix_options, row_image, col_image):
             row_seed = row_image
             all_seeds = list(set([row_seed, col_seed]))
 
-        seed_images, all_w = seeds_to_array_images(G, all_seeds, truncation_psi)
+        seed_images = []
+        raw_ws = []
+
+        for seed in all_seeds:
+            image, w = seed_to_array_image(G, seed, truncation_psi)
+            raw_ws.append(w)
+            seed_images.append(image)
         
+        all_w = torch.Tensor().to(device)
+
+        seed_row_image = None
+        w_row_blob = None
+        seed_col_image = None
+        w_col_blob = None
+
         if len(seed_images) == 2:
             seed_row_image = save_image_as_bytes(seed_images[0])
-            w_row_blob = save_vector_as_bytes(all_w[0])
+            w_row_blob = save_vector_as_bytes(raw_ws[0])
             seed_col_image = save_image_as_bytes(seed_images[1])
-            w_col_blob = save_vector_as_bytes(all_w[1])
+            w_col_blob = save_vector_as_bytes(raw_ws[1])
         else:
-            if isinstance(row_seed, int) and isinstance(col_seed, int):
+            if isinstance(row_seed, int):
                 seed_row_image = save_image_as_bytes(seed_images[0])
-                w_row_blob = save_vector_as_bytes(all_w[0])
-                seed_col_image = seed_row_image
-                w_col_blob = w_row_blob
-            elif isinstance(row_seed, int):
-                seed_row_image = save_image_as_bytes(seed_images[0])
-                w_row_blob = save_vector_as_bytes(all_w[0])
-                seed_col_image = None
-                w_col_blob = None
+                w_row_blob = save_vector_as_bytes(raw_ws[0])
+                if isinstance(col_seed, int):
+                    seed_col_image = seed_row_image
+                    w_col_blob = w_row_blob
+                
             elif isinstance(col_seed, int):
-                seed_row_image = None
-                w_row_blob = None
                 seed_col_image = save_image_as_bytes(seed_images[0])
-                w_col_blob = save_vector_as_bytes(all_w[0])
+                w_col_blob = save_vector_as_bytes(raw_ws[0])
         
+
+        for w in raw_ws[0]:
+            all_w = torch.cat((all_w, w.unsqueeze(0)), 0)
+        if len(raw_ws) == 2:
+            for w in raw_ws[1]:
+                all_w = torch.cat((all_w, w.unsqueeze(0)), 0)
         if ws is not None:
             for w in ws:
                 all_w = torch.cat((all_w, w.unsqueeze(0)), 0)
-
 
     else:
 
