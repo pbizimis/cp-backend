@@ -8,7 +8,7 @@ import dnnlib
 import numpy as np
 import PIL.Image
 import torch
-from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_bytes_vector
+from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_bytes_vector, seeds_to_array_images, w_vector_to_image
 
 def generate_style_mix(model, stylemix_options, row_image, col_image):
 
@@ -47,16 +47,7 @@ def generate_style_mix(model, stylemix_options, row_image, col_image):
             row_seed = row_image
             all_seeds = list(set([row_seed, col_seed]))
 
-        all_z = np.stack(
-            [np.random.RandomState(seed).randn(G.z_dim) for seed in all_seeds]
-        )
-        all_w = G.mapping(torch.from_numpy(all_z).to(device), None)
-
-        w_avg = G.mapping.w_avg
-        all_w = w_avg + (all_w - w_avg) * truncation_psi
-
-        seed_images = G.synthesis(all_w, noise_mode=noise_mode, force_fp32=True)
-        seed_images = (seed_images.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8).cpu().numpy()
+        seed_images, all_w = seeds_to_array_images(G, all_seeds, truncation_psi)
         
         if len(seed_images) == 2:
             seed_row_image = save_image_as_bytes(seed_images[0])
@@ -112,11 +103,8 @@ def generate_style_mix(model, stylemix_options, row_image, col_image):
     w = w_dict[row_seed].clone()
     w[col_styles] = w_dict[col_seed][col_styles]
     w = w[np.newaxis]
-    image = G.synthesis(w, noise_mode=noise_mode, force_fp32=True)
-    image = (
-        (image.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
-    )
-    image = image[0].cpu().numpy()
+
+    image = w_vector_to_image(G, w)
 
     result_image = save_image_as_bytes(image)
     result_vector = save_vector_as_bytes(w)
