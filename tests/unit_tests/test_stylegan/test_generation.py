@@ -20,7 +20,7 @@ def test_generate_stylegan2ada_images(G_model, mocker):
 
     result_dict = generate_stylegan2ada_images(G_model, mock_options)
 
-    with open("tests/test_stylegan/assertion_files/generation_assertion_result.txt", "r") as f:
+    with open("tests/unit_tests/test_stylegan/assertion_files/generation_assertion_result.txt", "r") as f:
         assertion_result_dict = json.loads(f.read())
 
     assert result_dict["result_image"][0] == assertion_result_dict["result_image"][0]

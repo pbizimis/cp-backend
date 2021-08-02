@@ -1,5 +1,5 @@
 from app.schemas.stylegan_user import StyleGanUser, download_blob
-from tests.conftest import db_stub
+from tests.unit_tests.conftest import db_stub
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.schemas.stylegan_models import StyleGanModel
 from app.schemas.stylegan_models import Model
