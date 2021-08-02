@@ -40,14 +40,14 @@ def project(
     noise_bufs = { name: buf for (name, buf) in G.synthesis.named_buffers() if 'noise_const' in name }
 
     # Load VGG16 feature detector.
-    url = 'https://nvlabs-fi-cdn.nvidia.com/stylegan2-ada-pytorch/pretrained/metrics/vgg16.pt'
-    with dnnlib.util.open_url(url) as f:
+    url = 'vgg16.pt'
+    with  open(url, "rb") as f:
         vgg16 = torch.jit.load(f).eval().to(device)
 
     # Features for target image.
     target_images = target.unsqueeze(0).to(device).to(torch.float32)
-    if target_images.shape[2] > 256:
-        target_images = F.interpolate(target_images, size=(256, 256), mode='area')
+    # if target_images.shape[2] > 256:
+    #     target_images = F.interpolate(target_images, size=(256, 256), mode='area')
     target_features = vgg16(target_images, resize_images=False, return_lpips=True)
 
     w_opt = torch.tensor(w_avg, dtype=torch.float32, device=device, requires_grad=True) # pylint: disable=not-callable
@@ -77,8 +77,8 @@ def project(
 
         # Downsample image to 256x256 if it's larger than that. VGG was built for 224x224 images.
         synth_images = (synth_images + 1) * (255/2)
-        if synth_images.shape[2] > 256:
-            synth_images = F.interpolate(synth_images, size=(256, 256), mode='area')
+        # if synth_images.shape[2] > 256:
+        #     synth_images = F.interpolate(synth_images, size=(256, 256), mode='area')
 
         # Features for synth images.
         synth_features = vgg16(synth_images, resize_images=False, return_lpips=True)
@@ -110,14 +110,13 @@ def project(
                 buf -= buf.mean()
                 buf *= buf.square().mean().rsqrt()
 
-    return w_out.repeat([1, G.mapping.num_ws, 1])
+    return w_out.repeat([1, G.mapping.num_ws, 1])[-1].unsqueeze(0)
 
 #----------------------------------------------------------------------------
 
-def run_projection(model, image_blob):
+def run_projection(model, image_blob, num_steps = 100):
 
     seed = 303
-    num_steps = 100 # 1000 is optimal, takes a lot of time >10min
     device = torch.device('cpu')
 
     np.random.seed(seed)
@@ -133,17 +132,15 @@ def run_projection(model, image_blob):
     target_pil = target_pil.crop(((w - s) // 2, (h - s) // 2, (w + s) // 2, (h + s) // 2))
     target_pil = target_pil.resize((G.img_resolution, G.img_resolution), PIL.Image.LANCZOS)
     target_uint8 = np.array(target_pil, dtype=np.uint8)
+    target = torch.tensor(target_uint8.transpose([2, 0, 1]), device=device) # pylint: disable=not-callable
 
     # Optimize projection.
-    projected_w_steps = project(
+    projected_w = project(
         G,
-        target=torch.tensor(target_uint8.transpose([2, 0, 1]), device=device), # pylint: disable=not-callable
+        target=target,
         num_steps=num_steps,
         device=device,
         verbose=True
     )
 
-    # Save final projected frame and W vector.
-    projected_w = projected_w_steps[-1]
-
-    return projected_w.unsqueeze(0)
+    return projected_w

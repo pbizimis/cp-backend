@@ -1,1 +1,2 @@
 stylegan2_ada_models/img31res256fid12.pkl filter=lfs diff=lfs merge=lfs -text
+vgg16.pt filter=lfs diff=lfs merge=lfs -text
