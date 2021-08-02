@@ -3,23 +3,6 @@ import PIL.Image
 import torch
 import numpy as np
 
-def seeds_to_array_images(G, seeds, truncation_psi):
-    device = torch.device('cpu')
-    noise_mode = "const"
-
-    all_z = np.stack(
-            [np.random.RandomState(seed).randn(G.z_dim) for seed in seeds]
-        )
-    all_w = G.mapping(torch.from_numpy(all_z).to(device), None)
-
-    w_avg = G.mapping.w_avg
-    all_w = w_avg + (all_w - w_avg) * truncation_psi
-
-    seed_images = G.synthesis(all_w, noise_mode=noise_mode, force_fp32=True)
-    seed_images = (seed_images.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8).cpu().numpy()
-
-    return seed_images, all_w
-
 def seed_to_array_image(G, seed, truncation_psi):
     device = torch.device('cpu')
 
