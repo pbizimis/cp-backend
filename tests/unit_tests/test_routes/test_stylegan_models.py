@@ -25,11 +25,11 @@ def test_read_stylegan_models_authenticated(test_authenticated_client):
     resp = client.get(url)
     assert resp.status_code == 200
     assert resp.json() == {
-        "stylegan_models": {
+        "stylegan_models": [{
             "version": "StyleGan2ADA",
             "models": [
                 {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"},
                 {"img": 20, "res": 512, "fid": 2, "version": "stylegan2"},
             ],
-        }
+        }]
     }
