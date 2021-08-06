@@ -7,7 +7,7 @@ import pytest
 from pydantic import BaseModel
 
 from app.core.config import IMAGE_STORAGE_BASE_URL
-from app.db.mongodb import delete_image
+from app.db.mongodb import delete_all_images
 from app.schemas.stylegan2ada import Generation, StyleMix
 from app.schemas.stylegan_methods import StyleGanMethod
 from app.schemas.stylegan_models import Model
@@ -49,7 +49,7 @@ async def test_style_mix_images_authenticated(async_authenticated_app, mocker):
     ]
 
     assertion_resp = {
-        "stylegan_models": {"version": "StyleGan2ADA", "models": stylegan2ada_models}
+        "stylegan_models": [{"version": "StyleGan2ADA", "models": stylegan2ada_models}]
     }
 
     resp = await app.get("/api/v1/models")
@@ -193,5 +193,4 @@ async def test_style_mix_images_authenticated(async_authenticated_app, mocker):
 
     # DELETE (CLEANUP)
 
-    for image_id in all_user_images["image_ids"]:
-        await delete_image(db, auth0_id="007", url=image_id["url"])
+    await delete_all_images(db, auth0_id="007")

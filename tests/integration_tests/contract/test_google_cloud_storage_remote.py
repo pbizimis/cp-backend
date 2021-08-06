@@ -54,8 +54,8 @@ def test_google_cloud_storage():
     assert torch.equal(vector_tensor, downloaded_vector_tensor)
 
     # delete the bytes from the buckets
-    delete_blob("cp-testing-image", image_id)
-    delete_blob("cp-testing-vector", vector_id)
+    delete_blob("cp-testing-image", [image_id])
+    delete_blob("cp-testing-vector", [vector_id])
 
     # list them to ensure that everything is cleaned up and the deletion worked
     storage_client = storage.Client()
