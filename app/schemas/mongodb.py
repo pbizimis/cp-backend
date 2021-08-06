@@ -8,3 +8,7 @@ class Image(BaseModel):
     auth0_id: str
     creation_date: datetime = datetime.now(pytz.timezone("Europe/Berlin"))
     method: dict
+
+class DeletionOptions(BaseModel):
+    all_documents: bool = False
+    id_list: List[str]

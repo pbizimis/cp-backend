@@ -2,9 +2,9 @@ from fastapi_auth0 import Auth0User
 from app.schemas.stylegan_models import StyleGanModel
 from typing import Type
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.db.mongodb import save_image, delete_image, get_user_images
+from app.db.mongodb import save_image, delete_images, get_user_images, delete_all_images
 from app.schemas.mongodb import Image
-from app.db.google_cloud_storage import upload_blob, download_blob
+from app.db.google_cloud_storage import upload_blob, download_blob, delete_blob
 
 class StyleGanUser:
 
@@ -21,6 +21,19 @@ class StyleGanUser:
 
     async def get_images(self) -> list:
         return await get_user_images(self.db, self.user.id)
+    
+    async def delete_images(self, deletion_options) -> list:
+        if (deletion_options.all_documents):
+            image_ids = [image.url for image in await self.get_images()]
+            delete_blob("stylegan-images", image_ids)
+            delete_blob("stylegan-images-vectors", image_ids)
+            await delete_all_images(self.db, self.user.id)
+        else:
+            delete_blob("stylegan-images", deletion_options.id_list)
+            delete_blob("stylegan-images-vectors", deletion_options.id_list)
+            await delete_images(self.db, self.user.id, deletion_options.id_list)
+
+        return True
 
     def generate_stylegan_image(self) -> None:
         self.blobs = self.stylegan_model.generate()

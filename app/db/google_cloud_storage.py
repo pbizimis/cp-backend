@@ -28,10 +28,11 @@ def download_blob(bucket_name: str, image_id: str) -> bytes:
 
     return image_blob
 
-def delete_blob(bucket_name: str, image_id: str) -> None:
+def delete_blob(bucket_name: str, image_ids: list) -> None:
 
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(image_id)
-    return blob.delete()
+    for image_id in image_ids:
+        blob = bucket.blob(image_id)
+        blob.delete()
