@@ -6,6 +6,7 @@ import requests
 
 from app.core.config import API_PREFIX
 from app.schemas.stylegan2ada import Generation, StyleMix
+from app.schemas.mongodb import DeletionOptions
 from app.schemas.stylegan_models import Model
 
 # requires a running application instance on localhost:8000
@@ -253,3 +254,50 @@ def test_e2e():
 
     # assert that all images created in this test have a database entry
     assert set(created_images).issubset(all_testing_images_ids)
+
+    # DELETION
+
+    first_two_image_ids = created_images[:2]
+
+    resp = requests.delete(
+        BASE_URL + "/user/images",
+        headers={"Authorization": "Bearer " + access_token},
+        json=DeletionOptions(
+            id_list=first_two_image_ids,
+        ).dict(),
+    )
+
+    resp = requests.get(
+        BASE_URL + "/user/images",
+        headers={"Authorization": "Bearer " + access_token},
+    )
+
+    all_testing_images = resp.json()["image_ids"]
+    all_testing_images_ids = []
+    for image_dict in all_testing_images:
+        all_testing_images_ids.append(image_dict["url"])
+
+    # assert that none of the images have a database anymore
+    assert not set(first_two_image_ids).issubset(all_testing_images_ids)
+
+    # DELETE ALL
+
+    first_two_image_ids = created_images[:2]
+
+    resp = requests.delete(
+        BASE_URL + "/user/images",
+        headers={"Authorization": "Bearer " + access_token},
+        json=DeletionOptions(
+            all_documents=True,
+            id_list=[],
+        ).dict(),
+    )
+
+    resp = requests.get(
+        BASE_URL + "/user/images",
+        headers={"Authorization": "Bearer " + access_token},
+    )
+
+    all_testing_images = resp.json()["image_ids"]
+
+    assert all_testing_images == []
