@@ -61,3 +61,25 @@ def test_style_mix_images_authenticated_right_payload(test_authenticated_client)
             },
         ],
     }
+
+def test_image_deletion_route_with_list(test_authenticated_client):
+    client, app = test_authenticated_client
+
+    data = '{"id_list": ["id1", "id2"]}'
+    resp = client.delete(
+        user_url, headers={"Content-Type": "application/json"}, data=data
+    )
+    
+    assert resp.status_code == 200
+    assert resp.json() == {"deleted_images": ["id1", "id2"]}
+
+def test_image_deletion_route_all(test_authenticated_client):
+    client, app = test_authenticated_client
+
+    data = '{"id_list": [], "all_documents": true}'
+    resp = client.delete(
+        user_url, headers={"Content-Type": "application/json"}, data=data
+    )
+    
+    assert resp.status_code == 200
+    assert resp.json() == {"deleted_images": "all"}

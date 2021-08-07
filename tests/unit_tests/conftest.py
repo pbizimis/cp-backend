@@ -108,6 +108,9 @@ def test_authenticated_client():
                     ),
                 ]
 
+            async def delete_images(self, deletion_options):
+                return True
+
             @classmethod
             def get_class(cls):
                 return cls
