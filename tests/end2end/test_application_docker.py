@@ -49,10 +49,10 @@ def test_e2e():
         BASE_URL + "/models", headers={"Authorization": "Bearer " + access_token}
     )
     assert resp.json() == {
-        "stylegan_models": {
+        "stylegan_models": [{
             "version": "StyleGan2ADA",
             "models": [{"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}],
-        }
+        }]
     }
 
     resp = requests.get(
