@@ -194,3 +194,7 @@ async def test_style_mix_images_authenticated(async_authenticated_app, mocker):
     # DELETE (CLEANUP)
 
     await delete_all_images(db, auth0_id="007")
+
+    # The asnyc http library used for this integration test does not support bodies on http DELETE requests.
+    # Usually the DELETE methods can have a request body as specified in https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE
+    # Therefore, DELETE tests are continued in the end2end test as well as unit tests
