@@ -24,6 +24,8 @@ async def user_images(deletion_options: DeletionOptions, db: AsyncIOMotorClient 
 
     stylegan_user = stylegan_user_class(user, db)
 
-    all_image_ids = await stylegan_user.delete_images(deletion_options)
+    await stylegan_user.delete_images(deletion_options)
 
-    return {"image_url_prefix": IMAGE_STORAGE_BASE_URL, "image_ids": all_image_ids}
+    deleted_images = "all" if deletion_options.all_documents else deletion_options.id_list
+
+    return {"deleted_images": deleted_images}
