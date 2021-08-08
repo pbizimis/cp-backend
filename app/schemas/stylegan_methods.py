@@ -16,6 +16,7 @@ class StyleGanMethod():
 
 class Slider(BaseModel):
     type: str = "slider"
+    description: str = ""
     name: str
     place: int
     max: int
@@ -25,6 +26,7 @@ class Slider(BaseModel):
 
 class Dropdown(BaseModel):
     type: str = "dropdown"
+    description: str = ""
     name: str
     place: int
     options: tuple
@@ -32,12 +34,14 @@ class Dropdown(BaseModel):
 
 class Text(BaseModel):
     type: str = "text"
+    description: str = ""
     name: str
     place: int
     default: str
 
 class SeedOrImage(BaseModel):
     type: str = "seed_or_image"
+    description: str = ""
     name: str
     place: int
     default: str

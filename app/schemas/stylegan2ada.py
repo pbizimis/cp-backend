@@ -60,20 +60,20 @@ generation_method = StyleGanMethod(
     name="Generate",
     description="Generate random images or from a certain seed.",
     method_options=(
-        Dropdown(place=1, name="Model", options=stylegan2_ada_models.models, default=0),
-        Slider(place=2, name="Truncation", max=2, min=-2, step=0.1, default=1),
-        Text(place=3, name="Seed", default="")
+        Dropdown(place=1, name="Model", options=stylegan2_ada_models.models, default=0, description="Choose your StyleGan2ADA model. The lower the FID value, the better the image quality."),
+        Slider(place=2, name="Truncation", max=2, min=-2, step=0.1, default=1, description="Truncation controls how close the image is to the overall average image of the model. For example, a truncation value of 0 will always generate the same image, the average of all images that were used to train the model. The higher or lower the value, the more diverse will the image be. Be aware that an increase in image diversity means a loss in image quality. This happens because a high or low truncation value tells the model to generate an image far away from the average, which essentially is less data that the model can use to generate your image."),
+        Text(place=3, name="Seed", default="", description="You can either choose an empty seed for a random generation, a specific seed value")
     )
 )
 
 stylemix_method = StyleGanMethod(
     name="StyleMix",
-    description="Style mix different images.",
+    description="Style mix two different images. The row image will adapt the styles of the column image.",
     method_options=(
-        Dropdown(place=1, name="Model", options=stylegan2_ada_models.models, default=0),
-        SeedOrImage(name="Row_Image", place=2, default=""),
-        SeedOrImage(name="Column_Image", place=3, default=""),
-        Dropdown(place=4, name="Styles", options=("Coarse", "Middle", "Fine"), default=1),
-        Slider(place=5, name="Truncation", max=2, min=-2, step=0.1, default=1),
+        Dropdown(place=1, name="Model", options=stylegan2_ada_models.models, default=0, description="Choose your StyleGan2ADA model. The lower the FID value, the better the image quality."),
+        SeedOrImage(name="Row_Image", place=2, default="", description="You can either choose an empty seed for a random generation, a specific seed value, or you can choose an image from your collection."),
+        SeedOrImage(name="Column_Image", place=3, default="", description="You can either choose an empty seed for a random generation, a specific seed value, or you can choose an image from your collection."),
+        Dropdown(place=4, name="Styles", options=("Coarse", "Middle", "Fine"), default=1, description="This dropdown allows to choose what kind of styles the row image adapts from the column image. Coarse styles are styles such as the content width (wide or narrow). Middle styles are structural styles such as grids, images, or text. Fine styles are almost only the color of the image."),
+        Slider(place=5, name="Truncation", max=2, min=-2, step=0.1, default=1, description="If you decide to generate a seed, the truncation controls how close the image is to the overall average image of the model. For example, a truncation value of 0 will always generate the same image, the average of all images that were used to train the model. The higher or lower the value, the more diverse will the image be. Be aware that an increase in image diversity means a loss in image quality. This happens because a high or low truncation value tells the model to generate an image far away from the average, which essentially is less data that the model can use to generate your image."),
     )
 )
