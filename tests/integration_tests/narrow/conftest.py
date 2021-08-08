@@ -31,4 +31,4 @@ async def async_authenticated_app():
     authenticated_app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(app=authenticated_app, base_url="http://localhost") as ac:
-        yield ac, db
+        yield ac, db, authenticated_app

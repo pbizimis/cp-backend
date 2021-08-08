@@ -9,6 +9,7 @@ import datetime
 from app.schemas.mongodb import Image
 from app.stylegan.load_model import load_stylegan2ada_model_from_pkl
 from pydantic import BaseModel
+from app.db.redisdb import check_user_ratelimit
 
 unauthenticated_app = get_app()
 authenticated_app = get_app()
@@ -37,6 +38,9 @@ def test_client():
 def test_authenticated_client():
     app = authenticated_app
     with TestClient(app) as client:
+
+        def override_check_user_ratelimit():
+            return ("007", False)
 
         def authenticated_user():
             return {"id": "007", "permissions": None, "email": None}
@@ -119,6 +123,7 @@ def test_authenticated_client():
             return db_stub
 
         app.dependency_overrides[auth.get_user] = authenticated_user
+        app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
         app.dependency_overrides[
             StyleGanUser.get_class
         ] = OverrideStyleGanUser.get_class

@@ -16,7 +16,11 @@ from tests.integration_tests.narrow.assertion_dict import assertion_user_result
 
 @pytest.mark.asyncio
 async def test_style_mix_images_authenticated(async_authenticated_app, mocker):
-    app, db = async_authenticated_app
+    app, db, fastapi_app = async_authenticated_app
+
+    # make sure that db is empty
+    result = await delete_all_images(db, "007")
+    result = await delete_all_images(db, "008")
 
     def override_upload_blob(bucket_name, image, image_id: str = None):
         if not image_id:
@@ -190,6 +194,42 @@ async def test_style_mix_images_authenticated(async_authenticated_app, mocker):
     resp = await app.get("/api/v1/user/images")
     all_user_images = json.loads(resp.text)
     assert all_user_images == assertion_user_result
+
+    # RATELIMIT
+    from datetime import timedelta
+    from app.db.redisdb import get_redis_ratelimit_config
+    def override_get_redis_ratelimit_config():
+        return 1, timedelta(seconds=5)
+
+    fastapi_app.dependency_overrides[get_redis_ratelimit_config] = override_get_redis_ratelimit_config
+
+    resp = await app.post(
+        "/api/v1/stylegan2ada/stylemix",
+        json=StyleMix(
+            model=stylemix_model,
+            truncation=1,
+            row_image="image_id_1",
+            column_image="image_id_2",
+            styles="Coarse",
+        ).dict(),
+    )
+    assert image_id == "this_is_hex_uid"
+    assert row_image_id == "image_id_1"
+    assert col_image_id == "image_id_2"
+    assert url_prefix == IMAGE_STORAGE_BASE_URL
+
+    resp = await app.post(
+        "/api/v1/stylegan2ada/stylemix",
+        json=StyleMix(
+            model=stylemix_model,
+            truncation=1,
+            row_image="image_id_1",
+            column_image="image_id_2",
+            styles="Coarse",
+        ).dict(),
+    )
+    resp.json() == {'message': 'You are rate limited!'}
+
 
     # DELETE (CLEANUP)
 

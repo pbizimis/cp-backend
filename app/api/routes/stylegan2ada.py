@@ -6,11 +6,18 @@ from app.schemas.stylegan_user import StyleGanUser
 from app.db.mongodb import get_db
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.config import IMAGE_STORAGE_BASE_URL
+from app.db.redisdb import check_user_ratelimit
+from aioredis import Redis
 
 router = APIRouter()
 
 @router.post("/stylemix")
-async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
+async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = Depends(get_db), ratelimited_user: tuple = Depends(check_user_ratelimit), stylegan_user_class = Depends(StyleGanUser.get_class)):
+
+    user = ratelimited_user[0]
+    is_ratelimited = ratelimited_user[1]
+    if is_ratelimited:
+        return {"message": "You are rate limited!"}
 
     stylegan_user = stylegan_user_class(user, db, StyleGan2ADA, stylemix_options)
 
@@ -21,8 +28,13 @@ async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = 
     return image_ids
 
 @router.post("/generate")
-async def generate_image(generation_options: Generation, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
+async def generate_image(generation_options: Generation, db: AsyncIOMotorClient = Depends(get_db), ratelimited_user: tuple = Depends(check_user_ratelimit), stylegan_user_class = Depends(StyleGanUser.get_class)):
 
+    user = ratelimited_user[0]
+    is_ratelimited = ratelimited_user[1]
+    if is_ratelimited:
+        return {"message": "You are rate limited!"}
+        
     stylegan_user = stylegan_user_class(user, db, StyleGan2ADA, generation_options)
 
     stylegan_user.generate_stylegan_image()

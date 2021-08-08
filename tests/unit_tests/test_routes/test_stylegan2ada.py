@@ -1,5 +1,6 @@
 from app.schemas.stylegan_models import stylegan2_ada_models
 from app.schemas.stylegan2ada import generation_method, stylemix_method
+from app.db.redisdb import check_user_ratelimit
 
 stylemix_url = "/api/v1/stylegan2ada/stylemix"
 
@@ -82,6 +83,26 @@ def test_style_mix_images_authenticated_wrong_headers(test_authenticated_client)
             }
         ]
     }
+
+def test_style_mix_images_authenticated_ratelimited(test_authenticated_client):
+    client, app = test_authenticated_client
+
+    # activate rate limit
+    def override_check_user_ratelimit():
+            return ("007", True)
+
+    app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
+
+    data = '{"model":{"img":31,"res":256,"fid":12,"version":"stylegan2_ada"},"row_image":"123","column_image":"456","styles":"Middle","truncation":1}'
+    resp = client.post(stylemix_url, headers={"Content-Type": "application/json"}, data=data)
+    assert resp.status_code == 200
+    assert resp.json() == {"message": "You are rate limited!"}
+
+    # deactivate rate limit
+    def override_check_user_ratelimit():
+            return ("007", False)
+
+    app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
 
 
 def test_style_mix_images_authenticated_right_payload(test_authenticated_client):
@@ -186,6 +207,25 @@ def test_generate_image_authenticated_wrong_headers(test_authenticated_client):
         ]
     }
 
+def test_generate_images_authenticated_ratelimited(test_authenticated_client):
+    client, app = test_authenticated_client
+
+    # activate rate limit
+    def override_check_user_ratelimit():
+            return ("007", True)
+
+    app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
+
+    data = '{"model":{"img":31,"res":256,"fid":12,"version":"stylegan2_ada"},"row_image":"123","column_image":"456","styles":"Middle","truncation":1}'
+    resp = client.post(stylemix_url, headers={"Content-Type": "application/json"}, data=data)
+    assert resp.status_code == 200
+    assert resp.json() == {"message": "You are rate limited!"}
+
+    # deactivate rate limit
+    def override_check_user_ratelimit():
+            return ("007", False)
+
+    app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
 
 def test_generate_image_authenticated_right_payload(test_authenticated_client):
     client, app = test_authenticated_client
