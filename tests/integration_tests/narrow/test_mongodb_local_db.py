@@ -14,6 +14,10 @@ current_date = datetime.datetime(2020, 2, 2, 20, 20, 20)
 async def test_db_correct_cases():
     client = AsyncIOMotorClient("localhost", 27017)
 
+    # make sure that db is empty
+    result = await delete_all_images(client, "007")
+    result = await delete_all_images(client, "008")
+
     image_data = {
         "url": "url1",
         "auth0_id": "007",

@@ -10,6 +10,14 @@ from app.db.google_cloud_storage import delete_blob, download_blob, upload_blob
 
 def test_google_cloud_storage():
 
+    # make sure buckets are empty before testing
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs("cp-testing-image")
+    delete_blob("cp-testing-image", [blob.name for blob in list(blobs)])
+
+    blobs = storage_client.list_blobs("cp-testing-vector")
+    delete_blob("cp-testing-vector", [blob.name for blob in list(blobs)])
+
     # access mock bytes (generated beforehand by this application)
     with open(
         "tests/unit_tests/test_stylegan/assertion_files/save_image_as_bytes_assertion_result.txt",

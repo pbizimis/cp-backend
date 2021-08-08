@@ -11,7 +11,7 @@ from app.schemas.stylegan_models import Model
 
 # requires a running application instance on localhost:8000
 # docker build . --tag api
-# docker run -e MONGOPW=$MONGOPW -e AUTH0_DOMAIN=$AUTH0_DOMAIN -e AUTH0_API=$AUTH0_API -e GOOGLE_APPLICATION_CREDENTIALS=/app/testing_credentials.json -p 8000:80 api
+# docker run -e MONGOPW=$MONGOPW -e AUTH0_DOMAIN=$AUTH0_DOMAIN -e AUTH0_API=$AUTH0_API -e GOOGLE_APPLICATION_CREDENTIALS=/app/testing_credentials.json -e REDIS_IP=host.docker.internal -e REDIS_PORT=$REDIS_PORT -e REDIS_RATELIMIT_REQUESTS=100 -e REDIS_RATELIMIT_PERIOD_MINUTES=1 -p 8000:80 api
 
 
 def test_e2e():
