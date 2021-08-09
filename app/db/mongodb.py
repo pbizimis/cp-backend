@@ -1,4 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.results import DeleteResult, InsertOneResult
 from app.schemas.mongodb import Image
 import os
 
@@ -24,11 +25,11 @@ async def get_user_images(db_con: AsyncIOMotorClient, auth0_id: str) -> list:
 
     return all_user_images
 
-async def save_image(db_con: AsyncIOMotorClient, image_data: Image) -> None:
+async def save_image(db_con: AsyncIOMotorClient, image_data: Image) -> InsertOneResult:
     return await db_con[db_name][db_collection_images].insert_one(image_data.dict())
 
-async def delete_images(db_con: AsyncIOMotorClient, auth0_id: str, id_list: list) -> None:
+async def delete_images(db_con: AsyncIOMotorClient, auth0_id: str, id_list: list) -> DeleteResult:
     return await db_con[db_name][db_collection_images].delete_many({"auth0_id": auth0_id, "url": {"$in": id_list}})
 
-async def delete_all_images(db_con: AsyncIOMotorClient, auth0_id: str) -> None:
+async def delete_all_images(db_con: AsyncIOMotorClient, auth0_id: str) -> DeleteResult:
     return await db_con[db_name][db_collection_images].delete_many({"auth0_id": auth0_id})

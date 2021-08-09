@@ -1,14 +1,15 @@
+from __future__ import annotations
 from fastapi_auth0 import Auth0User
 from app.schemas.stylegan_models import StyleGanModel
-from typing import Type
+from typing import Type, Union
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.db.mongodb import save_image, delete_images, get_user_images, delete_all_images
-from app.schemas.mongodb import Image
+from app.schemas.mongodb import Image, DeletionOptions
 from app.db.google_cloud_storage import upload_blob, download_blob, delete_blob
 
 class StyleGanUser:
 
-    def __init__(self, user: Auth0User, db: AsyncIOMotorClient, stylegan_class: Type[StyleGanModel] = None, stylegan_method_options: dict = None):
+    def __init__(self, user: Auth0User, db: AsyncIOMotorClient, stylegan_class: Type[StyleGanModel] = None, stylegan_method_options: dict = None) -> None:
         self.user = user
         self.stylegan_method_options = stylegan_method_options
         self.stylegan_class = stylegan_class
@@ -22,7 +23,7 @@ class StyleGanUser:
     async def get_images(self) -> list:
         return await get_user_images(self.db, self.user.id)
     
-    async def delete_images(self, deletion_options) -> list:
+    async def delete_images(self, deletion_options: DeletionOptions) -> None:
         if (deletion_options.all_documents):
             image_ids = [image.url for image in await self.get_images()]
             delete_blob("stylegan-images", image_ids)
@@ -33,8 +34,6 @@ class StyleGanUser:
             delete_blob("stylegan-images-vectors", deletion_options.id_list)
             await delete_images(self.db, self.user.id, deletion_options.id_list)
 
-        return True
-
     def generate_stylegan_image(self) -> None:
         self.blobs = self.stylegan_model.generate()
 
@@ -44,7 +43,7 @@ class StyleGanUser:
 
         self.blobs = self.stylegan_model.style_mix(row_image, column_image)
     
-    async def save_stylegan_image(self) -> str:
+    async def save_stylegan_image(self) -> dict:
         for key, blobs in self.blobs.items():
             image_blob, w_blob = blobs
             if not (image_blob and w_blob):
@@ -58,11 +57,11 @@ class StyleGanUser:
         return self.blobs
 
     @classmethod
-    def get_class(cls):
+    def get_class(cls) -> StyleGanUser:
         return cls    
 
     @staticmethod
-    def get_seed_or_image_vector(image_string):
+    def get_seed_or_image_vector(image_string: str) -> Union[int, bytes]:
         if image_string.isdigit():
             return int(image_string)
         else:

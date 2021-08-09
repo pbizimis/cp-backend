@@ -1,6 +1,6 @@
 import os
 import re
-from typing import List
+from typing import List, Union
 from io import BytesIO
 
 import click
@@ -8,9 +8,10 @@ import dnnlib
 import numpy as np
 import PIL.Image
 import torch
+from typing import Any
 from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_bytes_vector, w_vector_to_image, seed_to_array_image
 
-def generate_style_mix(model, stylemix_options, row_image, col_image):
+def generate_style_mix(model: Any, stylemix_options, row_image: Union[int, Any], col_image: Union[int, Any]) -> dict:
 
     device = torch.device("cpu")
     G = model

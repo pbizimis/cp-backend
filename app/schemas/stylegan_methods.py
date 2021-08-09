@@ -2,12 +2,12 @@ from pydantic import BaseModel
 
 class StyleGanMethod():
 
-    def __init__(self, name: str, description: str, method_options: tuple):
+    def __init__(self, name: str, description: str, method_options: tuple) -> None:
         self.name = name
         self.description = description
         self.method_options = method_options
 
-    def __call__(self):
+    def __call__(self) -> dict:
         return {
             "name": self.name,
             "description": self.description,

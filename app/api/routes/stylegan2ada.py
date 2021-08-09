@@ -12,7 +12,7 @@ from aioredis import Redis
 router = APIRouter()
 
 @router.post("/stylemix")
-async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = Depends(get_db), ratelimited_user: tuple = Depends(check_user_ratelimit), stylegan_user_class = Depends(StyleGanUser.get_class)):
+async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = Depends(get_db), ratelimited_user: tuple = Depends(check_user_ratelimit), stylegan_user_class = Depends(StyleGanUser.get_class)) -> dict:
 
     user = ratelimited_user[0]
     is_ratelimited = ratelimited_user[1]
@@ -28,7 +28,7 @@ async def style_mix_images(stylemix_options: StyleMix, db: AsyncIOMotorClient = 
     return image_ids
 
 @router.post("/generate")
-async def generate_image(generation_options: Generation, db: AsyncIOMotorClient = Depends(get_db), ratelimited_user: tuple = Depends(check_user_ratelimit), stylegan_user_class = Depends(StyleGanUser.get_class)):
+async def generate_image(generation_options: Generation, db: AsyncIOMotorClient = Depends(get_db), ratelimited_user: tuple = Depends(check_user_ratelimit), stylegan_user_class = Depends(StyleGanUser.get_class)) -> dict:
 
     user = ratelimited_user[0]
     is_ratelimited = ratelimited_user[1]
@@ -45,7 +45,7 @@ async def generate_image(generation_options: Generation, db: AsyncIOMotorClient 
     return image_id
 
 @router.get("/methods")
-async def get_stylegan2ada_methods(generation_method: dict = Depends(generation_method), stylemix_method: dict = Depends(stylemix_method), user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
+async def get_stylegan2ada_methods(generation_method: dict = Depends(generation_method), stylemix_method: dict = Depends(stylemix_method), user: Auth0User = Security(auth.get_user, scopes=["use:all"])) -> dict:
     return {
         "generation_method": generation_method,
         "stylemix_method": stylemix_method

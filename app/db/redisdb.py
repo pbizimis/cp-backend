@@ -13,10 +13,10 @@ r = aioredis.from_url(f"redis://{REDIS_IP}:{REDIS_PORT}")
 async def get_redis_db() -> aioredis.Redis:
     return r
 
-def get_redis_ratelimit_config():
+def get_redis_ratelimit_config() -> tuple:
     return REDIS_RATELIMIT_REQUESTS, REDIS_RATELIMIT_PERIOD
 
-async def request_is_limited(r, key: str, limit: int, period: timedelta):
+async def request_is_limited(r: aioredis.Redis, key: str, limit: int, period: timedelta) -> bool:
     period_in_seconds = int(period.total_seconds())
     t = await r.time()
     t = t[0]
@@ -30,6 +30,6 @@ async def request_is_limited(r, key: str, limit: int, period: timedelta):
         return False
     return True
 
-async def check_user_ratelimit(r: aioredis.Redis = Depends(get_redis_db), rate_limit_config: tuple = Depends(get_redis_ratelimit_config), user: Auth0User = Security(auth.get_user, scopes=["use:all"])):
+async def check_user_ratelimit(r: aioredis.Redis = Depends(get_redis_db), rate_limit_config: tuple = Depends(get_redis_ratelimit_config), user: Auth0User = Security(auth.get_user, scopes=["use:all"])) -> tuple:
     is_ratelimited = await request_is_limited(r, user.id, rate_limit_config[0], rate_limit_config[1])
     return (user, is_ratelimited)

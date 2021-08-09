@@ -11,7 +11,7 @@ from typing import List
 router = APIRouter()
 
 @router.get("/images")
-async def user_images(db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
+async def user_images(db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)) -> dict:
 
     stylegan_user = stylegan_user_class(user, db)
 
@@ -20,7 +20,7 @@ async def user_images(db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User
     return {"image_url_prefix": IMAGE_STORAGE_BASE_URL, "image_ids": all_image_ids}
 
 @router.delete("/images")
-async def user_images(deletion_options: DeletionOptions, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)):
+async def user_images(deletion_options: DeletionOptions, db: AsyncIOMotorClient = Depends(get_db),  user: Auth0User = Security(auth.get_user, scopes=["use:all"]), stylegan_user_class = Depends(StyleGanUser.get_class)) -> dict:
 
     stylegan_user = stylegan_user_class(user, db)
 

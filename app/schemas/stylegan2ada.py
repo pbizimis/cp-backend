@@ -5,24 +5,25 @@ from app.stylegan.load_model import load_stylegan2ada_model_from_pkl
 from app.stylegan.generation import generate_stylegan2ada_images
 from app.stylegan.projection import run_projection
 from app.stylegan.style_mixing import generate_style_mix
+from typing import Union, Any
 
 class StyleGan2ADA(StyleGanModel):
     
     folder_path = "stylegan2_ada_models/"
     loaded_models = {}
 
-    def __init__(self, model: Model, method_options: dict):
+    def __init__(self, model: Model, method_options: dict) -> None:
         
         model.version = self.__class__.__name__
         self.model = self._load_model(model)
         self.method_options =  method_options
             
-    def _check_for_loaded_models(self, model: Model):
+    def _check_for_loaded_models(self, model: Model) -> Union[bool, Any]:
         if model in self.loaded_models:
             return self.loaded_models[model]
         return False
 
-    def _load_model(self, model: Model):
+    def _load_model(self, model: Model) -> Any:
         
         stylegan2ada_model = self._check_for_loaded_models(model)
 
@@ -34,11 +35,11 @@ class StyleGan2ADA(StyleGanModel):
 
         return stylegan2ada_model
 
-    def generate(self):
+    def generate(self) -> dict:
         return generate_stylegan2ada_images(self.model, self.method_options)
 
 
-    def style_mix(self, row_image, col_image):
+    def style_mix(self, row_image: Union[int, bytes], col_image: Union[int, bytes]) -> dict:
         return generate_style_mix(self.model, self.method_options, row_image, col_image)
         
 

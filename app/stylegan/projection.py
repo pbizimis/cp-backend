@@ -7,24 +7,25 @@ import numpy as np
 import PIL.Image
 import torch
 import torch.nn.functional as F
+from typing import Any
 
 import dnnlib
 
 def project(
-    G,
+    G: Any,
     target: torch.Tensor, # [C,H,W] and dynamic range [0,255], W & H must match G output resolution
     *,
-    num_steps                  = 1000,
-    w_avg_samples              = 10000,
-    initial_learning_rate      = 0.1,
-    initial_noise_factor       = 0.05,
-    lr_rampdown_length         = 0.25,
-    lr_rampup_length           = 0.05,
-    noise_ramp_length          = 0.75,
-    regularize_noise_weight    = 1e5,
-    verbose                    = False,
+    num_steps: int                  = 1000,
+    w_avg_samples: int              = 10000,
+    initial_learning_rate: float      = 0.1,
+    initial_noise_factor: float       = 0.05,
+    lr_rampdown_length: float         = 0.25,
+    lr_rampup_length: float           = 0.05,
+    noise_ramp_length: float          = 0.75,
+    regularize_noise_weight: float    = 1e5,
+    verbose: bool                    = False,
     device: torch.device
-):
+) -> torch.Tensor:
     assert target.shape == (G.img_channels, G.img_resolution, G.img_resolution)
 
     G = copy.deepcopy(G).eval().requires_grad_(False).to(device) # type: ignore
@@ -114,7 +115,7 @@ def project(
 
 #----------------------------------------------------------------------------
 
-def run_projection(model, image_blob, num_steps = 100):
+def run_projection(model: Any, image_blob: bytes, num_steps = 100) -> torch.Tensor:
 
     seed = 303
     device = torch.device('cpu')

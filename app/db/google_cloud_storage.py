@@ -2,7 +2,7 @@ from google.cloud import storage
 import uuid
 
 
-def upload_blob(bucket_name, image, image_id: str = None):
+def upload_blob(bucket_name: str, image: bytes, image_id: str = None):
     """Uploads a file to the bucket."""
 
     storage_client = storage.Client()

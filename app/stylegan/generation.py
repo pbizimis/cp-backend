@@ -5,9 +5,10 @@ import PIL.Image
 import base64
 from io import BytesIO
 from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, seed_to_array_image
+from typing import Any
 
 
-def generate_stylegan2ada_images(model, generation_options: dict):
+def generate_stylegan2ada_images(model: Any, generation_options: dict) -> dict:
 
     G = model
     truncation_psi = generation_options.truncation
