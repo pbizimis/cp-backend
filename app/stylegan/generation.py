@@ -14,8 +14,16 @@ from app.stylegan.utils import (
 )
 
 
-def generate_image_stylegan2ada(model: Any, generation_options: dict) -> dict:
+def generate_image_stylegan2ada(model: Any, generation_options) -> dict:
+    """Generate a new image with a stylegan2ada model.
 
+    Args:
+        model (Any): a loaded stylegan2ada model
+        generation_options (Generation): an object containing generation options
+
+    Returns:
+        dict: a dict with the result image byte object and the feature vector byte object
+    """
     G = model
     truncation_psi = generation_options.truncation
     seed = generation_options.seed

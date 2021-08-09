@@ -6,6 +6,7 @@ from app.core.config import API_NAME, API_PREFIX, DEBUG, VERSION
 
 
 def get_app() -> FastAPI:
+    """Create a new FastAPI app."""
     app = FastAPI(title=API_NAME, debug=DEBUG, version=VERSION)
 
     app.include_router(router, prefix=API_PREFIX)

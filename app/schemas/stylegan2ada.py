@@ -17,23 +17,44 @@ from app.stylegan.style_mixing import style_mix_two_images_stylegan2ada
 
 
 class StyleGan2ADA(StyleGanModel):
+    """A class that describes the stylegan version stylegan2ada."""
 
     folder_path = "stylegan2_ada_models/"
     loaded_models = {}
 
     def __init__(self, model: Model, method_options: dict) -> None:
+        """Init a new stylegan2ada object.
 
+        Args:
+            model (Model): a model object that specifies the model that should be used for methods
+            method_options (dict): a dict that contains option parameters for a stylegan method
+        """
         model.version = self.__class__.__name__
         self.model = self._load_model(model)
         self.method_options = method_options
 
     def _check_for_loaded_models(self, model: Model) -> Union[bool, Any]:
+        """Return a model if it is already loaded into memory.
+
+        Args:
+            model (Model): the model that should be loaded from memory
+
+        Returns:
+            Union[bool, Any]: either False or the loaded model
+        """
         if model in self.loaded_models:
             return self.loaded_models[model]
         return False
 
     def _load_model(self, model: Model) -> Any:
+        """Load a stylegan2ada model.
 
+        Args:
+            model (Model): the model that should be loaded
+
+        Returns:
+            Any: the loaded stylegan2ada model
+        """
         stylegan2ada_model = self._check_for_loaded_models(model)
 
         if stylegan2ada_model:
@@ -45,17 +66,28 @@ class StyleGan2ADA(StyleGanModel):
         return stylegan2ada_model
 
     def generate(self) -> dict:
+        """Generate a new image with the specified stylegan2ada model."""
         return generate_image_stylegan2ada(self.model, self.method_options)
 
     def style_mix(
         self, row_image: Union[int, bytes], col_image: Union[int, bytes]
     ) -> dict:
+        """Style mix two images with the specified stylegan2ada model."""
         return style_mix_two_images_stylegan2ada(
             self.model, self.method_options, row_image, col_image
         )
 
 
 class Generation(BaseModel):
+    """The stylegan2ada generation method.
+
+    Attributes:
+        name (str): the name of the method. Defaults to Generation.
+        model (Model): the model that should be used for the generation
+        truncation (float): the truncation value for the generation
+        seed (float): the seed for the generation (can be blank to be random)
+    """
+
     name: str = "Generation"
     model: Model
     truncation: float
@@ -63,6 +95,17 @@ class Generation(BaseModel):
 
 
 class StyleMix(BaseModel):
+    """The stylegan2ada style mix method.
+
+    Attributes:
+        name (str): the name of the method. Defaults to StyleMix.
+        model (Model): the model that should be used for the style mix
+        row_image(str): a string that either is a seed (int) or an image id
+        column_image(str): a string that either is a seed (int) or an image id
+        styles (str): a string that defines the styles that should be used for the style mix
+        truncation (float): the truncation value for the style mix
+    """
+
     name: str = "StyleMix"
     model: Model
     row_image: str
@@ -71,6 +114,7 @@ class StyleMix(BaseModel):
     truncation: float
 
 
+# The definiton method options of the generation method.
 generation_method = StyleGanMethod(
     name="Generate",
     description="Generate random images or from a certain seed.",
@@ -99,7 +143,7 @@ generation_method = StyleGanMethod(
         ),
     ),
 )
-
+# The definiton method options of the style mix method.
 stylemix_method = StyleGanMethod(
     name="StyleMix",
     description="Style mix two different images. The row image will adapt the styles of the column image.",

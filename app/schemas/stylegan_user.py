@@ -21,6 +21,8 @@ from app.schemas.stylegan_models import StyleGanModel
 
 
 class StyleGanUser:
+    """A class that describes a user that uses a certain stylegan version with a model and methods."""
+
     def __init__(
         self,
         user: Auth0User,
@@ -28,6 +30,14 @@ class StyleGanUser:
         stylegan_class: Type[StyleGanModel] = None,
         stylegan_method_options: dict = None,
     ) -> None:
+        """Init a new stylegan user
+
+        Args:
+            user (Auth0User): the current user object (decoded JWT)
+            mongodb (AsyncIOMotorClient): the mongodb database connection
+            stylegan_class (Type[StyleGanModel], optional): the class of the stylegan version that the user should use. Defaults to None.
+            stylegan_method_options (dict, optional): a dict that contains the options for a specific method. Defaults to None.
+        """
         self.user = user
         self.stylegan_method_options = stylegan_method_options
         self.stylegan_class = stylegan_class
@@ -36,14 +46,21 @@ class StyleGanUser:
             self.stylegan_model = self._load_stylegan_model()
 
     def _load_stylegan_model(self) -> StyleGanModel:
+        """Create a new object of the stylegan class that the user should use."""
         return self.stylegan_class(
             self.stylegan_method_options.model, self.stylegan_method_options
         )
 
     async def get_user_images(self) -> list:
+        """Get a all images of a user from mongodb."""
         return await get_user_images_from_mongodb(self.mongodb, self.user.id)
 
     async def delete_user_images(self, deletion_options: DeletionOptions) -> None:
+        """Delete user images from mongodb and google cloud storage.
+
+        Args:
+            deletion_options (DeletionOptions): an object that contains the options for deletion (a list of ids or a specifier for all images)
+        """
         if deletion_options.all_documents:
             image_id_list = [image.url for image in await self.get_user_images()]
             delete_blob_from_gcs("stylegan-images", image_id_list)
@@ -57,9 +74,11 @@ class StyleGanUser:
             )
 
     def generate_image(self) -> None:
+        """Generate a new image with the specified stylegan version and model."""
         self.result_images_dict = self.stylegan_model.generate()
 
     def style_mix_images(self) -> None:
+        """Style mix two images with the specified stylegan version and model."""
         row_image = self.get_seed_or_image_vector(
             self.stylegan_method_options.row_image
         )
@@ -70,6 +89,7 @@ class StyleGanUser:
         self.result_images_dict = self.stylegan_model.style_mix(row_image, column_image)
 
     async def save_user_images(self) -> dict:
+        """Save user image data in mongodb and google cloud storage."""
         for image_name, image_blobs in self.result_images_dict.items():
             image_blob, w_vector_blob = image_blobs
             if not (image_blob and w_vector_blob):
@@ -90,10 +110,12 @@ class StyleGanUser:
 
     @classmethod
     def get_class(cls) -> StyleGanUser:
+        """Return the StyleGanUser class (for fastapi dependencies)."""
         return cls
 
     @staticmethod
     def get_seed_or_image_vector(image_string: str) -> Union[int, bytes]:
+        """Validate an input image string as an int or download the corresponding vector from google cloud storage."""
         if image_string.isdigit():
             return int(image_string)
         else:

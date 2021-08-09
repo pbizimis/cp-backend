@@ -19,9 +19,22 @@ from app.stylegan.utils import (
 
 
 def style_mix_two_images_stylegan2ada(
-    model: Any, stylemix_options, row_image: Union[int, Any], col_image: Union[int, Any]
+    model: Any,
+    stylemix_options,
+    row_image: Union[int, bytes],
+    col_image: Union[int, bytes],
 ) -> dict:
+    """Style mix two images with a stylegan2ada model.
 
+    Args:
+        model (Any): a loaded stylegan2ada model
+        stylemix_options (StyleMix): an object containing stylemix options
+        row_image (Union[int, bytes]): the row image as a seed or as a bytes object
+        col_image (Union[int, bytes]): the column image as a seed or as a bytes object
+
+    Returns:
+        dict: a dict with the result image, the row image, and the column image and their image byte object and their feature vector byte object
+    """
     device = torch.device("cpu")
     G = model
     truncation_psi = stylemix_options.truncation

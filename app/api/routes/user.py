@@ -19,7 +19,16 @@ async def get_user_images(
     user: Auth0User = Security(auth.get_user, scopes=["use:all"]),
     stylegan_user_class=Depends(StyleGanUser.get_class),
 ) -> dict:
+    """Get all images of the user.
 
+    Args:
+        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(get_mongodb).
+        user (Auth0User, optional): [description]. Defaults to Security(auth.get_user, scopes=["use:all"]).
+        stylegan_user_class ([type], optional): the current user object (decoded JWT). Defaults to Depends(StyleGanUser.get_class).
+
+    Returns:
+        dict: a dict with the image url prefix and a list with all image ids
+    """
     stylegan_user = stylegan_user_class(user, mongodb)
 
     all_image_ids = await stylegan_user.get_user_images()
@@ -34,7 +43,17 @@ async def delete_user_images(
     user: Auth0User = Security(auth.get_user, scopes=["use:all"]),
     stylegan_user_class=Depends(StyleGanUser.get_class),
 ) -> dict:
+    """Delete user images.
 
+    Args:
+        deletion_options (DeletionOptions): a pydantic model that validates DELETE data
+        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(get_mongodb).
+        user (Auth0User, optional): the current user object (decoded JWT). Defaults to Security(auth.get_user, scopes=["use:all"]).
+        stylegan_user_class ([type], optional): the stylegan user class. Defaults to Depends(StyleGanUser.get_class).
+
+    Returns:
+        dict: [description]
+    """
     stylegan_user = stylegan_user_class(user, mongodb)
 
     await stylegan_user.delete_user_images(deletion_options)

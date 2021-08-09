@@ -26,6 +26,26 @@ def project(
     verbose: bool = False,
     device: torch.device
 ) -> torch.Tensor:
+    """Project a target tensor onto a models latens space.
+
+    Args:
+        G (Any): the generator (model)
+        target (torch.Tensor): the target tensor
+        W ([type]): W
+        device (torch.device): the torch device
+        num_steps (int, optional): Defaults to 1000.
+        w_avg_samples (int, optional): Defaults to 10000.
+        initial_learning_rate (float, optional): Defaults to 0.1.
+        initial_noise_factor (float, optional): Defaults to 0.05.
+        lr_rampdown_length (float, optional): Defaults to 0.25.
+        lr_rampup_length (float, optional): Defaults to 0.05.
+        noise_ramp_length (float, optional): Defaults to 0.75.
+        regularize_noise_weight (float, optional): Defaults to 1e5.
+        verbose (bool, optional): Defaults to False.
+
+    Returns:
+        torch.Tensor: the feature vector of the projected image
+    """
     assert target.shape == (G.img_channels, G.img_resolution, G.img_resolution)
 
     G = copy.deepcopy(G).eval().requires_grad_(False).to(device)  # type: ignore
@@ -134,6 +154,16 @@ def project(
 def project_image_stylegan2ada(
     model: Any, image_blob: bytes, num_steps=100
 ) -> torch.Tensor:
+    """Project an image to the latent space of a stylegan2ada model.
+
+    Args:
+        model (Any): the stylegan2ada model
+        image_blob (bytes): the bytes object of the target image
+        num_steps (int, optional): the number of steps for the projection. Defaults to 100.
+
+    Returns:
+        torch.Tensor: the feature vector of the projected image
+    """
 
     seed = 303
     device = torch.device("cpu")
