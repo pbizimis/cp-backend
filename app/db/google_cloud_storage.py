@@ -1,5 +1,6 @@
-from google.cloud import storage
 import uuid
+
+from google.cloud import storage
 
 
 def upload_blob_to_gcs(bucket_name: str, image_blob: bytes, image_id: str = None):
@@ -18,8 +19,9 @@ def upload_blob_to_gcs(bucket_name: str, image_blob: bytes, image_id: str = None
 
     return image_id
 
+
 def download_blob_from_gcs(bucket_name: str, image_id: str) -> bytes:
-    
+
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
 
@@ -27,6 +29,7 @@ def download_blob_from_gcs(bucket_name: str, image_id: str) -> bytes:
     image_blob = blob.download_as_bytes()
 
     return image_blob
+
 
 def delete_blob_from_gcs(bucket_name: str, image_id_list: list) -> None:
 

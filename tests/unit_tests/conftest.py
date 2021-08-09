@@ -1,19 +1,22 @@
-from fastapi.testclient import TestClient
-from app.main import get_app
-import pytest
-from app.core.auth0 import auth
-from app.schemas.stylegan_user import StyleGanUser
-from motor.motor_asyncio import AsyncIOMotorClient
-from app.db.mongodb import get_mongodb
 import datetime
-from app.schemas.mongodb import ImageData
-from app.stylegan.load_model import load_model_from_pkl_stylegan2ada
+
+import pytest
+from fastapi.testclient import TestClient
+from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
+
+from app.core.auth0 import auth
+from app.db.mongodb import get_mongodb
 from app.db.redisdb import check_user_ratelimit
+from app.main import get_app
+from app.schemas.mongodb import ImageData
+from app.schemas.stylegan_user import StyleGanUser
+from app.stylegan.load_model import load_model_from_pkl_stylegan2ada
 
 unauthenticated_app = get_app()
 authenticated_app = get_app()
 db_stub = AsyncIOMotorClient()
+
 
 @pytest.fixture(scope="session")
 def G_model():

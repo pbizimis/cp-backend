@@ -1,4 +1,4 @@
-from app.schemas.stylegan_models import ModelCollection, Model
+from app.schemas.stylegan_models import Model, ModelCollection
 
 
 def test_model_class(tmpdir):

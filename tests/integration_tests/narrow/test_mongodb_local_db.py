@@ -3,8 +3,14 @@ import datetime
 import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from app.db.mongodb import (close_mongodb, delete_user_images_from_mongodb, delete_all_user_images_from_mongodb, get_mongodb, get_user_images_from_mongodb,
-                            save_user_image_in_mongodb)
+from app.db.mongodb import (
+    close_mongodb,
+    delete_all_user_images_from_mongodb,
+    delete_user_images_from_mongodb,
+    get_mongodb,
+    get_user_images_from_mongodb,
+    save_user_image_in_mongodb,
+)
 from app.schemas.mongodb import ImageData
 
 current_date = datetime.datetime(2020, 2, 2, 20, 20, 20)
@@ -105,6 +111,7 @@ async def test_mongodb_correct_cases():
     # delete all images for user 007
     result = await delete_all_user_images_from_mongodb(client, "007")
     assert result.deleted_count == 10
+
 
 @pytest.mark.asyncio
 async def test_mongodb_wrong_cases():

@@ -5,7 +5,11 @@ import PIL.Image
 import torch
 from google.cloud import storage
 
-from app.db.google_cloud_storage import delete_blob_from_gcs, download_blob_from_gcs, upload_blob_to_gcs
+from app.db.google_cloud_storage import (
+    delete_blob_from_gcs,
+    download_blob_from_gcs,
+    upload_blob_to_gcs,
+)
 
 
 def test_google_cloud_storage():

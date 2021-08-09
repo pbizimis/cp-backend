@@ -5,8 +5,8 @@ import PIL.Image
 import requests
 
 from app.core.config import API_PREFIX
-from app.schemas.stylegan2ada import Generation, StyleMix
 from app.schemas.mongodb import DeletionOptions
+from app.schemas.stylegan2ada import Generation, StyleMix
 from app.schemas.stylegan_models import Model
 
 # requires a running application instance on localhost:8000
@@ -50,17 +50,103 @@ def test_e2e():
         BASE_URL + "/models", headers={"Authorization": "Bearer " + access_token}
     )
     assert resp.json() == {
-        "stylegan_models": [{
-            "version": "StyleGan2ADA",
-            "models": [{"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}],
-        }]
+        "stylegan_models": [
+            {
+                "version": "StyleGan2ADA",
+                "models": [
+                    {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+                ],
+            }
+        ]
     }
 
     resp = requests.get(
         BASE_URL + "/stylegan2ada/methods",
         headers={"Authorization": "Bearer " + access_token},
     )
-    assert resp.json() == {'generation_method': {'name': 'Generate', 'description': 'Generate random images or from a certain seed.', 'method_options': [{'type': 'dropdown', 'description': 'Choose your StyleGan2ADA model. The lower the FID value, the better the image quality.', 'name': 'Model', 'place': 1, 'options': [{'img': 31, 'res': 256, 'fid': 12, 'version': 'stylegan2_ada'}], 'default': 0}, {'type': 'slider', 'description': 'Truncation controls how close the image is to the overall average image of the model. For example, a truncation value of 0 will always generate the same image, the average of all images that were used to train the model. The higher or lower the value, the more diverse will the image be. Be aware that an increase in image diversity means a loss in image quality. This happens because a high or low truncation value tells the model to generate an image far away from the average, which essentially is less data that the model can use to generate your image.', 'name': 'Truncation', 'place': 2, 'max': 2, 'min': -2, 'step': 0.1, 'default': 1.0}, {'type': 'text', 'description': 'You can either choose an empty seed for a random generation, a specific seed value', 'name': 'Seed', 'place': 3, 'default': ''}]}, 'stylemix_method': {'name': 'StyleMix', 'description': 'Style mix two different images. The row image will adapt the styles of the column image.', 'method_options': [{'type': 'dropdown', 'description': 'Choose your StyleGan2ADA model. The lower the FID value, the better the image quality.', 'name': 'Model', 'place': 1, 'options': [{'img': 31, 'res': 256, 'fid': 12, 'version': 'stylegan2_ada'}], 'default': 0}, {'type': 'seed_or_image', 'description': 'You can either choose an empty seed for a random generation, a specific seed value, or you can choose an image from your collection.', 'name': 'Row_Image', 'place': 2, 'default': ''}, {'type': 'seed_or_image', 'description': 'You can either choose an empty seed for a random generation, a specific seed value, or you can choose an image from your collection.', 'name': 'Column_Image', 'place': 3, 'default': ''}, {'type': 'dropdown', 'description': 'This dropdown allows to choose what kind of styles the row image adapts from the column image. Coarse styles are styles such as the content width (wide or narrow). Middle styles are structural styles such as grids, images, or text. Fine styles are almost only the color of the image.', 'name': 'Styles', 'place': 4, 'options': ['Coarse', 'Middle', 'Fine'], 'default': 1}, {'type': 'slider', 'description': 'If you decide to generate a seed, the truncation controls how close the image is to the overall average image of the model. For example, a truncation value of 0 will always generate the same image, the average of all images that were used to train the model. The higher or lower the value, the more diverse will the image be. Be aware that an increase in image diversity means a loss in image quality. This happens because a high or low truncation value tells the model to generate an image far away from the average, which essentially is less data that the model can use to generate your image.', 'name': 'Truncation', 'place': 5, 'max': 2, 'min': -2, 'step': 0.1, 'default': 1.0}]}}
+    assert resp.json() == {
+        "generation_method": {
+            "name": "Generate",
+            "description": "Generate random images or from a certain seed.",
+            "method_options": [
+                {
+                    "type": "dropdown",
+                    "description": "Choose your StyleGan2ADA model. The lower the FID value, the better the image quality.",
+                    "name": "Model",
+                    "place": 1,
+                    "options": [
+                        {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+                    ],
+                    "default": 0,
+                },
+                {
+                    "type": "slider",
+                    "description": "Truncation controls how close the image is to the overall average image of the model. For example, a truncation value of 0 will always generate the same image, the average of all images that were used to train the model. The higher or lower the value, the more diverse will the image be. Be aware that an increase in image diversity means a loss in image quality. This happens because a high or low truncation value tells the model to generate an image far away from the average, which essentially is less data that the model can use to generate your image.",
+                    "name": "Truncation",
+                    "place": 2,
+                    "max": 2,
+                    "min": -2,
+                    "step": 0.1,
+                    "default": 1.0,
+                },
+                {
+                    "type": "text",
+                    "description": "You can either choose an empty seed for a random generation, a specific seed value",
+                    "name": "Seed",
+                    "place": 3,
+                    "default": "",
+                },
+            ],
+        },
+        "stylemix_method": {
+            "name": "StyleMix",
+            "description": "Style mix two different images. The row image will adapt the styles of the column image.",
+            "method_options": [
+                {
+                    "type": "dropdown",
+                    "description": "Choose your StyleGan2ADA model. The lower the FID value, the better the image quality.",
+                    "name": "Model",
+                    "place": 1,
+                    "options": [
+                        {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+                    ],
+                    "default": 0,
+                },
+                {
+                    "type": "seed_or_image",
+                    "description": "You can either choose an empty seed for a random generation, a specific seed value, or you can choose an image from your collection.",
+                    "name": "Row_Image",
+                    "place": 2,
+                    "default": "",
+                },
+                {
+                    "type": "seed_or_image",
+                    "description": "You can either choose an empty seed for a random generation, a specific seed value, or you can choose an image from your collection.",
+                    "name": "Column_Image",
+                    "place": 3,
+                    "default": "",
+                },
+                {
+                    "type": "dropdown",
+                    "description": "This dropdown allows to choose what kind of styles the row image adapts from the column image. Coarse styles are styles such as the content width (wide or narrow). Middle styles are structural styles such as grids, images, or text. Fine styles are almost only the color of the image.",
+                    "name": "Styles",
+                    "place": 4,
+                    "options": ["Coarse", "Middle", "Fine"],
+                    "default": 1,
+                },
+                {
+                    "type": "slider",
+                    "description": "If you decide to generate a seed, the truncation controls how close the image is to the overall average image of the model. For example, a truncation value of 0 will always generate the same image, the average of all images that were used to train the model. The higher or lower the value, the more diverse will the image be. Be aware that an increase in image diversity means a loss in image quality. This happens because a high or low truncation value tells the model to generate an image far away from the average, which essentially is less data that the model can use to generate your image.",
+                    "name": "Truncation",
+                    "place": 5,
+                    "max": 2,
+                    "min": -2,
+                    "step": 0.1,
+                    "default": 1.0,
+                },
+            ],
+        },
+    }
 
     # Generation
 

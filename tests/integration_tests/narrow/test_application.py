@@ -1,23 +1,24 @@
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from pydantic import BaseModel
 
 from app.core.config import IMAGE_STORAGE_BASE_URL
 from app.db.mongodb import delete_all_user_images_from_mongodb
+from app.db.redisdb import get_redis_ratelimit_config
 from app.schemas.stylegan2ada import Generation, StyleMix
 from app.schemas.stylegan_methods import StyleGanMethod
 from app.schemas.stylegan_models import Model
 from tests.integration_tests.narrow.assertion_dict import assertion_user_result
-from datetime import timedelta
-from app.db.redisdb import get_redis_ratelimit_config
 
 
 @pytest.mark.asyncio
-async def test_application_with_test_client_and_local_dbs(async_authenticated_app, mocker):
+async def test_application_with_test_client_and_local_dbs(
+    async_authenticated_app, mocker
+):
     app, db, fastapi_app = async_authenticated_app
 
     # make sure that db is empty
@@ -31,7 +32,8 @@ async def test_application_with_test_client_and_local_dbs(async_authenticated_ap
 
     # prevent upload and download from gcs
     mocker.patch(
-        "app.schemas.stylegan_user.upload_blob_to_gcs", side_effect=override_upload_blob_to_gcs
+        "app.schemas.stylegan_user.upload_blob_to_gcs",
+        side_effect=override_upload_blob_to_gcs,
     )
     mocker.patch("app.schemas.stylegan_user.download_blob_from_gcs")
 
@@ -128,7 +130,8 @@ async def test_application_with_test_client_and_local_dbs(async_authenticated_ap
         return w_bytes_value
 
     mocker.patch(
-        "app.schemas.stylegan_user.download_blob_from_gcs", side_effect=override_download_blob_from_gcs
+        "app.schemas.stylegan_user.download_blob_from_gcs",
+        side_effect=override_download_blob_from_gcs,
     )
 
     # stylemix seed and already existing image (row, col)
@@ -201,7 +204,9 @@ async def test_application_with_test_client_and_local_dbs(async_authenticated_ap
     def override_get_redis_ratelimit_config():
         return 1, timedelta(seconds=5)
 
-    fastapi_app.dependency_overrides[get_redis_ratelimit_config] = override_get_redis_ratelimit_config
+    fastapi_app.dependency_overrides[
+        get_redis_ratelimit_config
+    ] = override_get_redis_ratelimit_config
 
     resp = await app.post(
         "/api/v1/stylegan2ada/stylemix",
@@ -228,8 +233,7 @@ async def test_application_with_test_client_and_local_dbs(async_authenticated_ap
             styles="Coarse",
         ).dict(),
     )
-    resp.json() == {'message': 'You are rate limited!'}
-
+    resp.json() == {"message": "You are rate limited!"}
 
     # DELETE (CLEANUP)
 

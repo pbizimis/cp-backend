@@ -1,17 +1,26 @@
 import os
 import re
-from typing import List, Union
 from io import BytesIO
+from typing import Any, List, Union
 
 import click
 import dnnlib
 import numpy as np
 import PIL.Image
 import torch
-from typing import Any
-from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_vector_from_bytes, w_vector_to_image, seed_to_array_image
 
-def style_mix_two_images_stylegan2ada(model: Any, stylemix_options, row_image: Union[int, Any], col_image: Union[int, Any]) -> dict:
+from app.stylegan.utils import (
+    load_vector_from_bytes,
+    save_image_as_bytes,
+    save_vector_as_bytes,
+    seed_to_array_image,
+    w_vector_to_image,
+)
+
+
+def style_mix_two_images_stylegan2ada(
+    model: Any, stylemix_options, row_image: Union[int, Any], col_image: Union[int, Any]
+) -> dict:
 
     device = torch.device("cpu")
     G = model
@@ -20,9 +29,9 @@ def style_mix_two_images_stylegan2ada(model: Any, stylemix_options, row_image: U
     noise_mode = "const"
 
     col_styles_dict = {
-        "Coarse": [x for x in range(0,2)],
-        "Middle": [x for x in range(2,6)],
-        "Fine": [x for x in range(6,14)]
+        "Coarse": [x for x in range(0, 2)],
+        "Middle": [x for x in range(2, 6)],
+        "Fine": [x for x in range(6, 14)],
     }
 
     col_styles = col_styles_dict[col_style_name]
@@ -55,7 +64,7 @@ def style_mix_two_images_stylegan2ada(model: Any, stylemix_options, row_image: U
             image, w = seed_to_array_image(G, seed, truncation_psi)
             raw_ws.append(w)
             seed_images.append(image)
-        
+
         all_w = torch.Tensor().to(device)
 
         seed_row_image = None
@@ -75,11 +84,10 @@ def style_mix_two_images_stylegan2ada(model: Any, stylemix_options, row_image: U
                 if isinstance(col_seed, int):
                     seed_col_image = seed_row_image
                     w_col_blob = w_row_blob
-                
+
             elif isinstance(col_seed, int):
                 seed_col_image = save_image_as_bytes(seed_images[0])
                 w_col_blob = save_vector_as_bytes(raw_ws[0])
-        
 
         for w in raw_ws[0]:
             all_w = torch.cat((all_w, w.unsqueeze(0)), 0)
@@ -123,4 +131,8 @@ def style_mix_two_images_stylegan2ada(model: Any, stylemix_options, row_image: U
     result_image = save_image_as_bytes(image)
     result_vector = save_vector_as_bytes(w)
 
-    return {"result_image": (result_image, result_vector), "row_image": (seed_row_image, w_row_blob), "col_image": (seed_col_image, w_col_blob)}
+    return {
+        "result_image": (result_image, result_vector),
+        "row_image": (seed_row_image, w_row_blob),
+        "col_image": (seed_col_image, w_col_blob),
+    }

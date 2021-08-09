@@ -1,15 +1,16 @@
-from app.schemas.stylegan_user import StyleGanUser, download_blob_from_gcs
-from tests.unit_tests.conftest import db_stub
-from motor.motor_asyncio import AsyncIOMotorClient
-from app.schemas.stylegan_models import StyleGanModel
-from app.schemas.stylegan_models import Model
-from pydantic import BaseModel
-from fastapi_auth0 import Auth0User
-import app
-import pytest
 from typing import Optional
 from unittest.mock import call
+
+import pytest
+from fastapi_auth0 import Auth0User
+from motor.motor_asyncio import AsyncIOMotorClient
+from pydantic import BaseModel
+
+import app
 from app.schemas.mongodb import ImageData
+from app.schemas.stylegan_models import Model, StyleGanModel
+from app.schemas.stylegan_user import StyleGanUser, download_blob_from_gcs
+from tests.unit_tests.conftest import db_stub
 
 
 class MockStyleGanVersion(StyleGanModel):
@@ -95,7 +96,9 @@ async def test_get_user_images(mocker):
     mocker.patch("app.schemas.stylegan_user.get_user_images_from_mongodb")
     stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
     await stylegan_user.get_user_images()
-    app.schemas.stylegan_user.get_user_images_from_mongodb.assert_called_once_with(db_stub, "007")
+    app.schemas.stylegan_user.get_user_images_from_mongodb.assert_called_once_with(
+        db_stub, "007"
+    )
 
 
 def test_generate_image():
@@ -124,7 +127,10 @@ async def test_save_user_images(mocker):
     def mock_upload_blob_to_gcs(*values):
         return "random_id_for_" + values[1]
 
-    mocker.patch("app.schemas.stylegan_user.upload_blob_to_gcs", side_effect=mock_upload_blob_to_gcs)
+    mocker.patch(
+        "app.schemas.stylegan_user.upload_blob_to_gcs",
+        side_effect=mock_upload_blob_to_gcs,
+    )
     mocker.patch("app.schemas.stylegan_user.save_user_image_in_mongodb")
 
     stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
@@ -182,6 +188,8 @@ async def test_save_user_images(mocker):
         "col_image": "5678",
     }
 
-    stylegan_user.result_images_dict = {"result_image": ("result_image", "result_vector")}
+    stylegan_user.result_images_dict = {
+        "result_image": ("result_image", "result_vector")
+    }
     result = await stylegan_user.save_user_images()
     assert result == {"result_image": "random_id_for_result_image"}

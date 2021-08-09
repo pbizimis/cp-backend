@@ -1,7 +1,8 @@
-from app.schemas.stylegan_models import stylegan2ada_models
-from app.schemas.stylegan2ada import generation_method, stylemix_method
 import datetime
+
 from app.schemas.mongodb import ImageData
+from app.schemas.stylegan2ada import generation_method, stylemix_method
+from app.schemas.stylegan_models import stylegan2ada_models
 
 user_url = "/api/v1/user/images"
 
@@ -62,6 +63,7 @@ def test_get_user_images_authenticated_right_payload(test_authenticated_client):
         ],
     }
 
+
 def test_delete_user_images_with_list(test_authenticated_client):
     client, app = test_authenticated_client
 
@@ -69,9 +71,10 @@ def test_delete_user_images_with_list(test_authenticated_client):
     resp = client.delete(
         user_url, headers={"Content-Type": "application/json"}, data=data
     )
-    
+
     assert resp.status_code == 200
     assert resp.json() == {"deleted_images": ["id1", "id2"]}
+
 
 def test_delete_user_images_all(test_authenticated_client):
     client, app = test_authenticated_client
@@ -80,6 +83,6 @@ def test_delete_user_images_all(test_authenticated_client):
     resp = client.delete(
         user_url, headers={"Content-Type": "application/json"}, data=data
     )
-    
+
     assert resp.status_code == 200
     assert resp.json() == {"deleted_images": "all"}

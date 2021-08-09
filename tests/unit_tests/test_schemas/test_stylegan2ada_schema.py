@@ -1,7 +1,6 @@
+import app
 from app.schemas.stylegan2ada import StyleGan2ADA
 from app.schemas.stylegan_models import Model
-from app.schemas.stylegan_models import Model
-import app
 
 model = Model(**{"img": 31, "res": 512, "fid": 12})
 

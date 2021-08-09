@@ -1,11 +1,17 @@
+import base64
 import random
-import torch
+from io import BytesIO
+from typing import Any
+
 import numpy as np
 import PIL.Image
-import base64
-from io import BytesIO
-from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, seed_to_array_image
-from typing import Any
+import torch
+
+from app.stylegan.utils import (
+    save_image_as_bytes,
+    save_vector_as_bytes,
+    seed_to_array_image,
+)
 
 
 def generate_image_stylegan2ada(model: Any, generation_options: dict) -> dict:
@@ -15,7 +21,7 @@ def generate_image_stylegan2ada(model: Any, generation_options: dict) -> dict:
     seed = generation_options.seed
 
     if not seed:
-        seed = random.randint(0,2**32-1) # 2**32-1 is the highest value
+        seed = random.randint(0, 2 ** 32 - 1)  # 2**32-1 is the highest value
 
     img, w = seed_to_array_image(G, seed, truncation_psi)
 
