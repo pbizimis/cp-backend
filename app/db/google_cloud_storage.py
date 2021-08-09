@@ -2,7 +2,7 @@ from google.cloud import storage
 import uuid
 
 
-def upload_blob(bucket_name: str, image: bytes, image_id: str = None):
+def upload_blob_to_gcs(bucket_name: str, image_blob: bytes, image_id: str = None):
     """Uploads a file to the bucket."""
 
     storage_client = storage.Client()
@@ -14,11 +14,11 @@ def upload_blob(bucket_name: str, image: bytes, image_id: str = None):
         content_type = "application/octet-stream"
     blob = bucket.blob(image_id)
 
-    blob.upload_from_string(image, content_type=content_type)
+    blob.upload_from_string(image_blob, content_type=content_type)
 
     return image_id
 
-def download_blob(bucket_name: str, image_id: str) -> bytes:
+def download_blob_from_gcs(bucket_name: str, image_id: str) -> bytes:
     
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
@@ -28,11 +28,11 @@ def download_blob(bucket_name: str, image_id: str) -> bytes:
 
     return image_blob
 
-def delete_blob(bucket_name: str, image_ids: list) -> None:
+def delete_blob_from_gcs(bucket_name: str, image_id_list: list) -> None:
 
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
-    for image_id in image_ids:
+    for image_id in image_id_list:
         blob = bucket.blob(image_id)
         blob.delete()

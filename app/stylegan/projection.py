@@ -115,7 +115,7 @@ def project(
 
 #----------------------------------------------------------------------------
 
-def run_projection(model: Any, image_blob: bytes, num_steps = 100) -> torch.Tensor:
+def project_image_stylegan2ada(model: Any, image_blob: bytes, num_steps = 100) -> torch.Tensor:
 
     seed = 303
     device = torch.device('cpu')

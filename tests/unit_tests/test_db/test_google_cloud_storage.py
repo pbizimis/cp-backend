@@ -1,7 +1,7 @@
-from app.db.google_cloud_storage import upload_blob, download_blob
+from app.db.google_cloud_storage import upload_blob_to_gcs, download_blob_from_gcs
 import uuid
 
-def test_upload_blob(mocker):
+def test_upload_blob_to_gcs(mocker):
 
     class Blob():
 
@@ -26,17 +26,17 @@ def test_upload_blob(mocker):
 
     mocker.patch("app.db.google_cloud_storage.storage.Client", return_value=Client())
 
-    image_id = upload_blob("bucket_name", "image_string", "image_id")
+    image_id = upload_blob_to_gcs("bucket_name", "image_string", "image_id")
     
     assert image_id == "image_id"
     assert Blob.call_content_type_values[0] == "application/octet-stream"
 
-    image_id = upload_blob("bucket_name", "image_string")
+    image_id = upload_blob_to_gcs("bucket_name", "image_string")
     
     assert uuid.UUID(image_id, version=4)
     assert Blob.call_content_type_values[1] == "image/jpeg"
 
-def test_download_blob(mocker):
+def test_download_blob_from_gcs(mocker):
 
     class Blob():
 
@@ -59,6 +59,6 @@ def test_download_blob(mocker):
 
     mocker.patch("app.db.google_cloud_storage.storage.Client", return_value=Client())
 
-    image_blob = download_blob("bucket_name", "image_id")
+    image_blob = download_blob_from_gcs("bucket_name", "image_id")
     
     assert image_blob == "bytes_image"

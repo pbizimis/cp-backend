@@ -1,4 +1,4 @@
-from app.schemas.stylegan_models import Models, Model
+from app.schemas.stylegan_models import ModelCollection, Model
 
 
 def test_model_class(tmpdir):
@@ -14,11 +14,11 @@ def test_model_class(tmpdir):
     assert model.filename == "img31res512fid12.pkl"
 
 
-def test_models_class(tmpdir):
+def test_modelcollection_class(tmpdir):
     temp_dir = tmpdir.mkdir("stylegan_models/")
     temp_dir.join("img31res256fid12.pkl").write("1")
     temp_dir.join("img19res512fid16.pkl").write("2")
-    test_models = Models(str(temp_dir) + "/")
+    test_models = ModelCollection(str(temp_dir) + "/")
     assert len(test_models.models) == 2
     assert test_models.models[0] == Model.from_filename(
         "img19res512fid16.pkl", str(temp_dir) + "/"

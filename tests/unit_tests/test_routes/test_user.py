@@ -1,12 +1,12 @@
-from app.schemas.stylegan_models import stylegan2_ada_models
+from app.schemas.stylegan_models import stylegan2ada_models
 from app.schemas.stylegan2ada import generation_method, stylemix_method
 import datetime
-from app.schemas.mongodb import Image
+from app.schemas.mongodb import ImageData
 
 user_url = "/api/v1/user/images"
 
 
-def test_user_images_unauthenticated(test_client):
+def test_get_user_images_unauthenticated(test_client):
     """Wrong http method"""
     client, app = test_client
 
@@ -15,7 +15,7 @@ def test_user_images_unauthenticated(test_client):
     assert resp.json() == {"detail": "Missing bearer token"}
 
 
-def test_style_mix_images_authenticated_right_payload(test_authenticated_client):
+def test_get_user_images_authenticated_right_payload(test_authenticated_client):
     client, app = test_authenticated_client
 
     resp = client.get(user_url)
@@ -62,7 +62,7 @@ def test_style_mix_images_authenticated_right_payload(test_authenticated_client)
         ],
     }
 
-def test_image_deletion_route_with_list(test_authenticated_client):
+def test_delete_user_images_with_list(test_authenticated_client):
     client, app = test_authenticated_client
 
     data = '{"id_list": ["id1", "id2"]}'
@@ -73,7 +73,7 @@ def test_image_deletion_route_with_list(test_authenticated_client):
     assert resp.status_code == 200
     assert resp.json() == {"deleted_images": ["id1", "id2"]}
 
-def test_image_deletion_route_all(test_authenticated_client):
+def test_delete_user_images_all(test_authenticated_client):
     client, app = test_authenticated_client
 
     data = '{"id_list": [], "all_documents": true}'

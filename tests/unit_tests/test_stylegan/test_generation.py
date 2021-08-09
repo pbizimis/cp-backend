@@ -1,9 +1,9 @@
-from app.stylegan.generation import generate_stylegan2ada_images
+from app.stylegan.generation import generate_image_stylegan2ada
 from pydantic import BaseModel
 import json
 import app
 
-def test_generate_stylegan2ada_images(G_model, mocker):
+def test_generate_image_stylegan2ada(G_model, mocker):
     
     # prevent the saving to bytes and just return a list converted to a string for comparison
     def return_raw_values(value):
@@ -18,7 +18,7 @@ def test_generate_stylegan2ada_images(G_model, mocker):
 
     mock_options = GenerationOptions(truncation=0, seed=1234)
 
-    result_dict = generate_stylegan2ada_images(G_model, mock_options)
+    result_dict = generate_image_stylegan2ada(G_model, mock_options)
 
     with open("tests/unit_tests/test_stylegan/assertion_files/generation_assertion_result.txt", "r") as f:
         assertion_result_dict = json.loads(f.read())
@@ -34,7 +34,7 @@ def test_generate_stylegan2ada_images(G_model, mocker):
 
     mock_options = GenerationOptions(truncation=0)
 
-    result_dict = generate_stylegan2ada_images(G_model, mock_options)
+    result_dict = generate_image_stylegan2ada(G_model, mock_options)
 
     call_args = app.stylegan.generation.seed_to_array_image.call_args
     assert call_args[0][0] == G_model

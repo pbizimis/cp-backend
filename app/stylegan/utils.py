@@ -33,6 +33,6 @@ def save_vector_as_bytes(vector: torch.Tensor) -> bytes:
     torch.save(vector, buffer)
     return buffer.getvalue()
 
-def load_bytes_vector(bytes_vector: bytes) -> torch.Tensor:
+def load_vector_from_bytes(bytes_vector: bytes) -> torch.Tensor:
     buffer = BytesIO(bytes_vector)
     return torch.load(buffer)

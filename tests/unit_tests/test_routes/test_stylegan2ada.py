@@ -1,11 +1,11 @@
-from app.schemas.stylegan_models import stylegan2_ada_models
+from app.schemas.stylegan_models import stylegan2ada_models
 from app.schemas.stylegan2ada import generation_method, stylemix_method
 from app.db.redisdb import check_user_ratelimit
 
 stylemix_url = "/api/v1/stylegan2ada/stylemix"
 
 
-def test_style_mix_images_unauthenticated(test_client):
+def test_style_mix_images_stylegan2ada_unauthenticated(test_client):
     """Wrong http method"""
     client, app = test_client
 
@@ -14,7 +14,7 @@ def test_style_mix_images_unauthenticated(test_client):
     assert resp.json() == {"detail": "Missing bearer token"}
 
 
-def test_style_mix_images_authenticated_wrong_payload(test_authenticated_client):
+def test_style_mix_images_stylegan2ada_authenticated_wrong_payload(test_authenticated_client):
     client, app = test_authenticated_client
 
     # no payload
@@ -67,7 +67,7 @@ def test_style_mix_images_authenticated_wrong_payload(test_authenticated_client)
     }
 
 
-def test_style_mix_images_authenticated_wrong_headers(test_authenticated_client):
+def test_style_mix_images_stylegan2ada_authenticated_wrong_headers(test_authenticated_client):
     client, app = test_authenticated_client
 
     # wrong data type
@@ -84,7 +84,7 @@ def test_style_mix_images_authenticated_wrong_headers(test_authenticated_client)
         ]
     }
 
-def test_style_mix_images_authenticated_ratelimited(test_authenticated_client):
+def test_style_mix_images_stylegan2ada_authenticated_ratelimited(test_authenticated_client):
     client, app = test_authenticated_client
 
     # activate rate limit
@@ -105,7 +105,7 @@ def test_style_mix_images_authenticated_ratelimited(test_authenticated_client):
     app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
 
 
-def test_style_mix_images_authenticated_right_payload(test_authenticated_client):
+def test_style_mix_images_stylegan2ada_authenticated_right_payload(test_authenticated_client):
     client, app = test_authenticated_client
 
     data = '{"model":{"img":31,"res":256,"fid":12,"version":"stylegan2_ada"},"row_image":"123","column_image":"456","styles":"Middle","truncation":1}'
@@ -126,7 +126,7 @@ def test_style_mix_images_authenticated_right_payload(test_authenticated_client)
 generation_url = "/api/v1/stylegan2ada/generate"
 
 
-def test_generate_image_unauthenticated(test_client):
+def test_generate_image_stylegan2ada_unauthenticated(test_client):
     """Wrong http method"""
     client, app = test_client
 
@@ -135,7 +135,7 @@ def test_generate_image_unauthenticated(test_client):
     assert resp.json() == {"detail": "Missing bearer token"}
 
 
-def test_generate_image_authenticated_wrong_payload(test_authenticated_client):
+def test_generate_image_stylegan2ada_authenticated_wrong_payload(test_authenticated_client):
     client, app = test_authenticated_client
 
     # no payload
@@ -188,7 +188,7 @@ def test_generate_image_authenticated_wrong_payload(test_authenticated_client):
     }
 
 
-def test_generate_image_authenticated_wrong_headers(test_authenticated_client):
+def test_generate_image_stylegan2ada_authenticated_wrong_headers(test_authenticated_client):
     client, app = test_authenticated_client
 
     # wrong data type
@@ -207,7 +207,7 @@ def test_generate_image_authenticated_wrong_headers(test_authenticated_client):
         ]
     }
 
-def test_generate_images_authenticated_ratelimited(test_authenticated_client):
+def test_generate_image_stylegan2ada_authenticated_ratelimited(test_authenticated_client):
     client, app = test_authenticated_client
 
     # activate rate limit
@@ -227,7 +227,7 @@ def test_generate_images_authenticated_ratelimited(test_authenticated_client):
 
     app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
 
-def test_generate_image_authenticated_right_payload(test_authenticated_client):
+def test_generate_image_stylegan2ada_authenticated_right_payload(test_authenticated_client):
     client, app = test_authenticated_client
 
     data = '{"model":{"img":31,"res":256,"fid":12,"version":"stylegan2_ada"},"truncation":1.2,"seed":123456}'

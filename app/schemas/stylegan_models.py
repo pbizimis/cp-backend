@@ -33,7 +33,7 @@ class Model(BaseModel):
     def __hash__(self) -> int:                                                         
         return hash((type(self),) + tuple(self.__dict__.values()))      
 
-class Models():
+class ModelCollection():
 
     def __init__(self, path: str) -> None:
         self.path = path
@@ -45,4 +45,4 @@ class Models():
     def create_models(self) -> list:
         return [Model.from_filename(filename, self.path) for filename in os.listdir(self.path)]
 
-stylegan2_ada_models = Models("stylegan2_ada_models/")
+stylegan2ada_models = ModelCollection("stylegan2_ada_models/")

@@ -9,7 +9,7 @@ model = Model(**{"img": 31, "res": 512, "fid": 12})
 def test_stylegan2ada(mocker):
 
     mocker.patch(
-        "app.schemas.stylegan2ada.load_stylegan2ada_model_from_pkl",
+        "app.schemas.stylegan2ada.load_model_from_pkl_stylegan2ada",
         return_value="new_model",
     )
 
@@ -46,7 +46,7 @@ def test__check_for_loaded_models():
 def test__load_model(mocker):
 
     mocker.patch(
-        "app.schemas.stylegan2ada.load_stylegan2ada_model_from_pkl",
+        "app.schemas.stylegan2ada.load_model_from_pkl_stylegan2ada",
         return_value="other_model",
     )
     stylegan2ada_model = StyleGan2ADA(
@@ -60,7 +60,7 @@ def test__load_model(mocker):
         return_value="new_model",
     )
     assert stylegan2ada_model._load_model(model) == "new_model"
-    app.schemas.stylegan2ada.load_stylegan2ada_model_from_pkl.assert_not_called
+    app.schemas.stylegan2ada.load_model_from_pkl_stylegan2ada.assert_not_called
 
     # case if model is loaded from pkl
     mocker.patch(
@@ -70,7 +70,7 @@ def test__load_model(mocker):
     assert other_model not in stylegan2ada_model.loaded_models
     assert stylegan2ada_model._load_model(other_model) == "other_model"
     assert stylegan2ada_model.loaded_models[other_model] == "other_model"
-    app.schemas.stylegan2ada.load_stylegan2ada_model_from_pkl.assert_called
+    app.schemas.stylegan2ada.load_model_from_pkl_stylegan2ada.assert_called
 
 
 def test_generate(mocker):
@@ -78,12 +78,12 @@ def test_generate(mocker):
         "app.schemas.stylegan2ada.StyleGan2ADA._load_model",
         return_value="generate_model",
     )
-    mocker.patch("app.schemas.stylegan2ada.generate_stylegan2ada_images")
+    mocker.patch("app.schemas.stylegan2ada.generate_image_stylegan2ada")
     stylegan2ada_model = StyleGan2ADA(
         model=model, method_options={"method_option": "first_option"}
     )
     stylegan2ada_model.generate()
-    app.schemas.stylegan2ada.generate_stylegan2ada_images.assert_called_once_with(
+    app.schemas.stylegan2ada.generate_image_stylegan2ada.assert_called_once_with(
         "generate_model", {"method_option": "first_option"}
     )
 
@@ -93,11 +93,11 @@ def test_style_mix(mocker):
         "app.schemas.stylegan2ada.StyleGan2ADA._load_model",
         return_value="style_mix_model",
     )
-    mocker.patch("app.schemas.stylegan2ada.generate_style_mix")
+    mocker.patch("app.schemas.stylegan2ada.style_mix_two_images_stylegan2ada")
     stylegan2ada_model = StyleGan2ADA(
         model=model, method_options={"method_option": "first_option"}
     )
     stylegan2ada_model.style_mix("row_image", "col_image")
-    app.schemas.stylegan2ada.generate_style_mix.assert_called_once_with(
+    app.schemas.stylegan2ada.style_mix_two_images_stylegan2ada.assert_called_once_with(
         "style_mix_model", {"method_option": "first_option"}, "row_image", "col_image"
     )

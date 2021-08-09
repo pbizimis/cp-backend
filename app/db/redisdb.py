@@ -8,28 +8,28 @@ from app.core.auth0 import auth
 from app.core.config import (REDIS_IP, REDIS_PORT, REDIS_RATELIMIT_PERIOD,
                              REDIS_RATELIMIT_REQUESTS)
 
-r = aioredis.from_url(f"redis://{REDIS_IP}:{REDIS_PORT}")
+redisdb = aioredis.from_url(f"redis://{REDIS_IP}:{REDIS_PORT}")
 
-async def get_redis_db() -> aioredis.Redis:
-    return r
+async def get_redisdb() -> aioredis.Redis:
+    return redisdb
 
 def get_redis_ratelimit_config() -> tuple:
     return REDIS_RATELIMIT_REQUESTS, REDIS_RATELIMIT_PERIOD
 
-async def request_is_limited(r: aioredis.Redis, key: str, limit: int, period: timedelta) -> bool:
+async def is_ratelimited_redisdb(redisdb: aioredis.Redis, key: str, limit: int, period: timedelta) -> bool:
     period_in_seconds = int(period.total_seconds())
-    t = await r.time()
+    t = await redisdb.time()
     t = t[0]
     separation = round(period_in_seconds / limit)
-    await r.setnx(key, 0)
-    get_t = await r.get(key)
+    await redisdb.setnx(key, 0)
+    get_t = await redisdb.get(key)
     tat = max(int(get_t), t)
     if tat - t <= period_in_seconds - separation:
         new_tat = max(tat, t) + separation
-        await r.set(key, new_tat)
+        await redisdb.set(key, new_tat)
         return False
     return True
 
-async def check_user_ratelimit(r: aioredis.Redis = Depends(get_redis_db), rate_limit_config: tuple = Depends(get_redis_ratelimit_config), user: Auth0User = Security(auth.get_user, scopes=["use:all"])) -> tuple:
-    is_ratelimited = await request_is_limited(r, user.id, rate_limit_config[0], rate_limit_config[1])
+async def check_user_ratelimit(redisdb: aioredis.Redis = Depends(get_redisdb), redis_ratelimit_config: tuple = Depends(get_redis_ratelimit_config), user: Auth0User = Security(auth.get_user, scopes=["use:all"])) -> tuple:
+    is_ratelimited = await is_ratelimited_redisdb(redisdb, user.id, redis_ratelimit_config[0], redis_ratelimit_config[1])
     return (user, is_ratelimited)

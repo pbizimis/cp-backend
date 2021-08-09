@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 
 from app.core.auth0 import auth
-from app.db.mongodb import get_db
+from app.db.mongodb import get_mongodb
 from app.main import get_app
 
 
@@ -28,7 +28,7 @@ async def async_authenticated_app():
         return db
 
     authenticated_app.dependency_overrides[auth.get_user] = authenticated_user
-    authenticated_app.dependency_overrides[get_db] = override_get_db
+    authenticated_app.dependency_overrides[get_mongodb] = override_get_db
 
     async with AsyncClient(app=authenticated_app, base_url="http://localhost") as ac:
         yield ac, db, authenticated_app

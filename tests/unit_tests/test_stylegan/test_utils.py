@@ -1,4 +1,4 @@
-from app.stylegan.utils import seed_to_array_image, w_vector_to_image, save_image_as_bytes, save_vector_as_bytes, load_bytes_vector
+from app.stylegan.utils import seed_to_array_image, w_vector_to_image, save_image_as_bytes, save_vector_as_bytes, load_vector_from_bytes
 import json
 import torch
 import numpy as np
@@ -55,7 +55,7 @@ def test_save_vector_as_bytes():
     # make sure that saved bytes ensure vector contents
     assert torch.equal(w, torch.load(BytesIO(assertion_bytes_value)))
 
-def test_load_bytes_vector():
+def test_load_vector_from_bytes():
 
     with open("tests/unit_tests/test_stylegan/assertion_files/seed_to_array_assertion_result.txt", "r") as f:
         assertion_result_dict = json.loads(f.read())
@@ -66,7 +66,7 @@ def test_load_bytes_vector():
     with open("tests/unit_tests/test_stylegan/assertion_files/save_vector_as_bytes_assertion_result.txt", "rb") as f:
         assertion_bytes_value = f.read()
 
-    tensor = load_bytes_vector(assertion_bytes_value)
+    tensor = load_vector_from_bytes(assertion_bytes_value)
 
     assert torch.is_tensor(tensor)
     assert torch.equal(w, tensor)

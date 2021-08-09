@@ -8,7 +8,7 @@ from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, seed_t
 from typing import Any
 
 
-def generate_stylegan2ada_images(model: Any, generation_options: dict) -> dict:
+def generate_image_stylegan2ada(model: Any, generation_options: dict) -> dict:
 
     G = model
     truncation_psi = generation_options.truncation

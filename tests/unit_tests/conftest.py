@@ -4,10 +4,10 @@ import pytest
 from app.core.auth0 import auth
 from app.schemas.stylegan_user import StyleGanUser
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.db.mongodb import get_db
+from app.db.mongodb import get_mongodb
 import datetime
-from app.schemas.mongodb import Image
-from app.stylegan.load_model import load_stylegan2ada_model_from_pkl
+from app.schemas.mongodb import ImageData
+from app.stylegan.load_model import load_model_from_pkl_stylegan2ada
 from pydantic import BaseModel
 from app.db.redisdb import check_user_ratelimit
 
@@ -22,7 +22,7 @@ def G_model():
 
     mock_model = MockModel(filename="img31res256fid12.pkl")
 
-    model = load_stylegan2ada_model_from_pkl("stylegan2_ada_models", mock_model)
+    model = load_model_from_pkl_stylegan2ada("stylegan2_ada_models", mock_model)
 
     return model
 
@@ -55,22 +55,22 @@ def test_authenticated_client():
                 self.stylegan_method_options = stylegan_method_options
                 self.result = {}
 
-            def stylemix_stylegan_images(self):
+            def style_mix_images(self):
                 self.result = {
                     "result_image": "111111111111111",
                     "row_image": "2222222222222",
                     "col_image": "3333333333333",
                 }
 
-            def generate_stylegan_image(self):
+            def generate_image(self):
                 self.result = {"result_image": "111111111111111"}
 
-            async def save_stylegan_image(self):
+            async def save_user_images(self):
                 return self.result
 
-            async def get_images(self):
+            async def get_user_images(self):
                 return [
-                    Image(
+                    ImageData(
                         url="c31ad1323ed648feb93cd7398fcf1894",
                         auth0_id="google-oauth2|114778200891334419591",
                         creation_date=datetime.datetime(
@@ -90,7 +90,7 @@ def test_authenticated_client():
                             "truncation": 1.0,
                         },
                     ),
-                    Image(
+                    ImageData(
                         url="3bf5df238b3741559d9e3806c97f2d33",
                         auth0_id="google-oauth2|114778200891334419591",
                         creation_date=datetime.datetime(
@@ -112,7 +112,7 @@ def test_authenticated_client():
                     ),
                 ]
 
-            async def delete_images(self, deletion_options):
+            async def delete_user_images(self, deletion_options):
                 return True
 
             @classmethod
@@ -127,6 +127,6 @@ def test_authenticated_client():
         app.dependency_overrides[
             StyleGanUser.get_class
         ] = OverrideStyleGanUser.get_class
-        app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[get_mongodb] = override_get_db
 
         yield client, app

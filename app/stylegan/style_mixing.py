@@ -9,9 +9,9 @@ import numpy as np
 import PIL.Image
 import torch
 from typing import Any
-from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_bytes_vector, w_vector_to_image, seed_to_array_image
+from app.stylegan.utils import save_image_as_bytes, save_vector_as_bytes, load_vector_from_bytes, w_vector_to_image, seed_to_array_image
 
-def generate_style_mix(model: Any, stylemix_options, row_image: Union[int, Any], col_image: Union[int, Any]) -> dict:
+def style_mix_two_images_stylegan2ada(model: Any, stylemix_options, row_image: Union[int, Any], col_image: Union[int, Any]) -> dict:
 
     device = torch.device("cpu")
     G = model
@@ -32,13 +32,13 @@ def generate_style_mix(model: Any, stylemix_options, row_image: Union[int, Any],
         ws = None
 
         if isinstance(row_image, bytes) and isinstance(col_image, int):
-            ws = load_bytes_vector(row_image)
+            ws = load_vector_from_bytes(row_image)
             row_seed = "proj_w"
             col_seed = col_image
             all_seeds = [col_seed]
 
         if isinstance(col_image, bytes) and isinstance(row_image, int):
-            ws = load_bytes_vector(col_image)
+            ws = load_vector_from_bytes(col_image)
             row_seed = row_image
             col_seed = "proj_w"
             all_seeds = [row_seed]
@@ -92,8 +92,8 @@ def generate_style_mix(model: Any, stylemix_options, row_image: Union[int, Any],
 
     else:
 
-        ws_col = load_bytes_vector(col_image)
-        ws_row = load_bytes_vector(row_image)
+        ws_col = load_vector_from_bytes(col_image)
+        ws_row = load_vector_from_bytes(row_image)
         col_seed = "col_proj_w"
         row_seed = "row_proj_w"
         all_seeds = [row_seed, col_seed]
