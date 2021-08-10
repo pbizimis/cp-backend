@@ -13,8 +13,9 @@ from app.db.google_cloud_storage import (
 
 
 def test_google_cloud_storage():
+    """Test remote google cloud storage buckets and connection."""
 
-    # make sure buckets are empty before testing
+    # Make sure buckets are empty before testing.
     storage_client = storage.Client()
     blobs = storage_client.list_blobs("cp-testing-image")
     delete_blob_from_gcs("cp-testing-image", [blob.name for blob in list(blobs)])
@@ -22,14 +23,14 @@ def test_google_cloud_storage():
     blobs = storage_client.list_blobs("cp-testing-vector")
     delete_blob_from_gcs("cp-testing-vector", [blob.name for blob in list(blobs)])
 
-    # access mock bytes (generated beforehand by this application)
+    # Access mock bytes (generated beforehand by this application)
     with open(
         "tests/unit_tests/test_stylegan/assertion_files/save_image_as_bytes_assertion_result.txt",
         "rb",
     ) as f:
         image_bytes = f.read()
 
-    # create an image object
+    # Create an image
     pil_image = PIL.Image.open(BytesIO(image_bytes)).convert("RGB")
 
     with open(
@@ -38,21 +39,21 @@ def test_google_cloud_storage():
     ) as f:
         vector_bytes = f.read()
 
-    # create an tensor object
+    # Create a vector tensor
     vector_tensor = torch.load(BytesIO(vector_bytes))
 
-    # upload bytes
+    # Upload bytes
     image_id = upload_blob_to_gcs("cp-testing-image", image_bytes)
     assert uuid.UUID(image_id, version=4)
 
-    # upload bytes to another bucket
+    # Upload bytes to another bucket
     vector_id = upload_blob_to_gcs("cp-testing-vector", vector_bytes, image_id)
     assert uuid.UUID(image_id, version=4)
 
-    # assert that both have the same id since it is passed to the second function call
+    # Assert that both have the same id since it is passed to the second function call
     assert image_id == vector_id
 
-    # download bytes
+    # Download bytes
     downloaded_image_bytes = download_blob_from_gcs("cp-testing-image", image_id)
     downloaded_pil_image = PIL.Image.open(BytesIO(downloaded_image_bytes)).convert(
         "RGB"
@@ -61,15 +62,15 @@ def test_google_cloud_storage():
     downloaded_vector_bytes = download_blob_from_gcs("cp-testing-vector", vector_id)
     downloaded_vector_tensor = torch.load(BytesIO(downloaded_vector_bytes))
 
-    # assert that bytes equal the previous bytes by loading them as an image and tensor
+    # Assert that bytes equal the previous bytes by loading them as an image and tensor
     assert list(pil_image.getdata()) == list(downloaded_pil_image.getdata())
     assert torch.equal(vector_tensor, downloaded_vector_tensor)
 
-    # delete the bytes from the buckets
+    # Delete the bytes from the buckets
     delete_blob_from_gcs("cp-testing-image", [image_id])
     delete_blob_from_gcs("cp-testing-vector", [vector_id])
 
-    # list them to ensure that everything is cleaned up and the deletion worked
+    # List buckets to ensure that everything is cleaned up and the deletion worked
     storage_client = storage.Client()
     blobs = storage_client.list_blobs("cp-testing-image")
 

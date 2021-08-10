@@ -18,12 +18,17 @@ current_date = datetime.datetime(2020, 2, 2, 20, 20, 20)
 
 @pytest.mark.asyncio
 async def test_mongodb_correct_cases():
+    """Test application logic against a local instance of MongoDB. This test tests correct cases."""
     client = AsyncIOMotorClient("localhost", 27017)
 
-    # make sure that db is empty
+    # Make sure that db is empty
     result = await delete_all_user_images_from_mongodb(client, "007")
     result = await delete_all_user_images_from_mongodb(client, "008")
 
+    ###
+    # Test saving
+
+    # Save first mock image
     image_data = {
         "url": "url1",
         "auth0_id": "007",
@@ -32,15 +37,14 @@ async def test_mongodb_correct_cases():
     }
     image = ImageData(**image_data)
 
-    # save one image
     await save_user_image_in_mongodb(client, image)
-    # get images
     images = await get_user_images_from_mongodb(client, "007")
     assert len(images) == 1
     assert images == [
         ImageData(url="url1", auth0_id="007", creation_date=current_date, method={})
     ]
 
+    # Save second mock image
     image_data = {
         "url": "url2",
         "auth0_id": "007",
@@ -49,9 +53,7 @@ async def test_mongodb_correct_cases():
     }
     image = ImageData(**image_data)
 
-    # save another image
     await save_user_image_in_mongodb(client, image)
-    # get images
     images = await get_user_images_from_mongodb(client, "007")
     assert len(images) == 2
     assert images == [
@@ -59,7 +61,7 @@ async def test_mongodb_correct_cases():
         ImageData(url="url2", auth0_id="007", creation_date=current_date, method={}),
     ]
 
-    # save image for different user
+    # Save image for different user
     image_data = {
         "url": "url1",
         "auth0_id": "008",
@@ -68,7 +70,6 @@ async def test_mongodb_correct_cases():
     }
     image = ImageData(**image_data)
     await save_user_image_in_mongodb(client, image)
-    # get images
     images = await get_user_images_from_mongodb(client, "007")
     assert len(images) == 2
     assert images == [
@@ -76,23 +77,30 @@ async def test_mongodb_correct_cases():
         ImageData(url="url2", auth0_id="007", creation_date=current_date, method={}),
     ]
 
-    # delete image for user 007
+    ###
+    # Test deletion
+
+    # Delete image for user 007
     result = await delete_user_images_from_mongodb(client, "007", ["url1", "url2"])
     assert result.deleted_count == 2
-    # get images
     images = await get_user_images_from_mongodb(client, "007")
     assert len(images) == 0
     assert images == []
 
-    # delete image for user 008
+    ###
+    # Test deletion
+
+    # Delete image for user 008
     result = await delete_user_images_from_mongodb(client, "008", ["url1"])
     assert result.deleted_count == 1
-    # get images
     images = await get_user_images_from_mongodb(client, "008")
     assert len(images) == 0
     assert images == []
 
-    # save many images
+    ###
+    # Test deletion of all
+
+    # Save multiple images for user 007
     image_data = {
         "auth0_id": "007",
         "creation_date": current_date,
@@ -101,31 +109,31 @@ async def test_mongodb_correct_cases():
 
     list_of_images = [ImageData(url=i, **image_data) for i in range(10)]
 
-    # save multiple image
     for image in list_of_images:
         await save_user_image_in_mongodb(client, image)
 
     images = await get_user_images_from_mongodb(client, "007")
     assert len(images) == 10
 
-    # delete all images for user 007
+    # Delete all images for user 007
     result = await delete_all_user_images_from_mongodb(client, "007")
     assert result.deleted_count == 10
 
 
 @pytest.mark.asyncio
 async def test_mongodb_wrong_cases():
+    """Test application logic against an instance of MongoDB Atlas. This test tests wrong cases."""
     client = AsyncIOMotorClient("localhost", 27017)
 
-    # data needs to be a pydantic object
+    # Data needs to be a pydantic object
     with pytest.raises(AttributeError):
         await save_user_image_in_mongodb(client, {"not a": "pydantic object"})
 
-    # user not in db (has no images)
+    # User is not in db (has no images)
     images = await get_user_images_from_mongodb(client, "007")
     assert len(images) == 0
     assert images == []
 
-    # delete not existing image
+    # Delete not existing image
     result = await delete_user_images_from_mongodb(client, "007", ["url"])
     assert result.deleted_count == 0

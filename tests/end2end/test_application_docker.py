@@ -15,16 +15,19 @@ from app.schemas.stylegan_models import Model
 
 
 def test_e2e():
+    """Test a running instance of this application."""
 
+    # Auth0 config
     AUTH0_DOMAIN_ID = os.getenv("AUTH0_DOMAIN_ID")
     AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
     AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
     AUTH0_AUDIENCE = os.getenv("AUTH0_AUDIENCE")
     GRANT_TYPE = "client_credentials"
 
+    # List to keep track of all created images in this process.
     created_images = []
 
-    # this applcation has access scope 'use:all'
+    # This application has access scope 'use:all'.
     response = requests.post(
         "https://" + AUTH0_DOMAIN_ID + "/com/oauth/token",
         headers={"content-type": "application/json"},
@@ -42,7 +45,8 @@ def test_e2e():
 
     BASE_URL = "http://localhost:8000" + API_PREFIX
 
-    # not authenticated
+    ###
+    # Test /models
     resp = requests.get(BASE_URL + "/models")
     assert resp.json() == {"detail": "Missing bearer token"}
 
@@ -60,6 +64,8 @@ def test_e2e():
         ]
     }
 
+    ###
+    # Test /stylegan2ada/methods
     resp = requests.get(
         BASE_URL + "/stylegan2ada/methods",
         headers={"Authorization": "Bearer " + access_token},
@@ -148,10 +154,13 @@ def test_e2e():
         },
     }
 
-    # Generation
+    ###
+    # Test /stylegan2ada/generate
 
+    # Model definition that the test should use.
     model = Model.from_filename("img31res256fid12.pkl", "stylegan2_ada_models/")
 
+    # Generate an image.
     resp = requests.post(
         BASE_URL + "/stylegan2ada/generate",
         headers={"Authorization": "Bearer " + access_token},
@@ -162,33 +171,20 @@ def test_e2e():
     created_images.append(generated_image_id)
     url_prefix = resp.json()["url_prefix"]
 
+    # Open the generated image from the link that is returned.
     image = PIL.Image.open(
         requests.get(url_prefix + generated_image_id, stream=True).raw
     )
-
-    assert image.size == (256, 256)
-
-    resp = requests.post(
-        BASE_URL + "/stylegan2ada/generate",
-        headers={"Authorization": "Bearer " + access_token},
-        json=Generation(model=model, truncation=1, seed="1234").dict(),
-    )
-
-    generated_image_id = resp.json()["result_image"]
-    created_images.append(generated_image_id)
-    url_prefix = resp.json()["url_prefix"]
-
-    image = PIL.Image.open(
-        requests.get(url_prefix + generated_image_id, stream=True).raw
-    ).convert("RGB")
 
     # JPEG decoding can product small changes in image data and therefore, images cannot be compared by pixel data
     # Since this is an end2end test, images can be visually assessed if necessary
     # Image is at: print(url_prefix + generated_image_id)
     assert image.size == (256, 256)
 
-    # Style Mix
+    ###
+    # Test /stylegan2ada/stylemix
 
+    # Style mix two seed images.
     resp = requests.post(
         BASE_URL + "/stylegan2ada/stylemix",
         headers={"Authorization": "Bearer " + access_token},
@@ -214,15 +210,18 @@ def test_e2e():
         requests.get(url_prefix + result_image_id, stream=True).raw
     ).convert("RGB")
     assert image.size == (256, 256)
+
     image = PIL.Image.open(
         requests.get(url_prefix + row_image_id, stream=True).raw
     ).convert("RGB")
     assert image.size == (256, 256)
+
     image = PIL.Image.open(
         requests.get(url_prefix + col_image_id, stream=True).raw
     ).convert("RGB")
     assert image.size == (256, 256)
 
+    # Style mix two already generated images.
     resp = requests.post(
         BASE_URL + "/stylegan2ada/stylemix",
         headers={"Authorization": "Bearer " + access_token},
@@ -248,17 +247,19 @@ def test_e2e():
         requests.get(url_prefix + result_image_id, stream=True).raw
     ).convert("RGB")
     assert image.size == (256, 256)
+
     image = PIL.Image.open(
         requests.get(url_prefix + row_image_id, stream=True).raw
     ).convert("RGB")
     assert image.size == (256, 256)
+
     image = PIL.Image.open(
         requests.get(url_prefix + col_image_id, stream=True).raw
     ).convert("RGB")
     assert image.size == (256, 256)
 
-    # GET IMAGES
-
+    ###
+    # Test GET /user/images
     resp = requests.get(
         BASE_URL + "/user/images",
         headers={"Authorization": "Bearer " + access_token},
@@ -272,11 +273,11 @@ def test_e2e():
     # assert that all images created in this test have a database entry
     assert set(created_images).issubset(all_testing_images_ids)
 
-    # DELETION
-
+    ###
+    # Test DELETE /user/images
     first_two_image_ids = created_images[:2]
 
-    resp = requests.delete(
+    requests.delete(
         BASE_URL + "/user/images",
         headers={"Authorization": "Bearer " + access_token},
         json=DeletionOptions(
@@ -294,14 +295,12 @@ def test_e2e():
     for image_dict in all_testing_images:
         all_testing_images_ids.append(image_dict["url"])
 
-    # assert that none of the images have a database anymore
+    # assert that none of the deleted images have a database entry
     assert not set(first_two_image_ids).issubset(all_testing_images_ids)
 
-    # DELETE ALL
-
-    first_two_image_ids = created_images[:2]
-
-    resp = requests.delete(
+    ###
+    # Test DELETE (all) /user/images
+    requests.delete(
         BASE_URL + "/user/images",
         headers={"Authorization": "Bearer " + access_token},
         json=DeletionOptions(

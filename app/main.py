@@ -11,8 +11,8 @@ def get_app() -> FastAPI:
 
     app.include_router(router, prefix=API_PREFIX)
 
+    # CORS config
     origins = ["http://localhost:3000", "https://webdesigan.com"]
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,

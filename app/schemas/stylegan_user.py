@@ -62,11 +62,13 @@ class StyleGanUser:
             deletion_options (DeletionOptions): an object that contains the options for deletion (a list of ids or a specifier for all images)
         """
         if deletion_options.all_documents:
+            # Delete all user image data from mongodb and gcs
             image_id_list = [image.url for image in await self.get_user_images()]
             delete_blob_from_gcs("stylegan-images", image_id_list)
             delete_blob_from_gcs("stylegan-images-vectors", image_id_list)
             await delete_all_user_images_from_mongodb(self.mongodb, self.user.id)
         else:
+            # Delete a list of user image data from mongodb and gcs
             delete_blob_from_gcs("stylegan-images", deletion_options.id_list)
             delete_blob_from_gcs("stylegan-images-vectors", deletion_options.id_list)
             await delete_user_images_from_mongodb(
@@ -92,6 +94,8 @@ class StyleGanUser:
         """Save user image data in mongodb and google cloud storage."""
         for image_name, image_blobs in self.result_images_dict.items():
             image_blob, w_vector_blob = image_blobs
+            # If image_blob and w_vector_blob are None, both have been passed in as already created (pulled from GCS with their id).
+            # Therefore, the result dict can be set to the initial id (either row or column image id).
             if not (image_blob and w_vector_blob):
                 self.result_images_dict[image_name] = (
                     self.stylegan_method_options.row_image
@@ -99,6 +103,7 @@ class StyleGanUser:
                     else self.stylegan_method_options.column_image
                 )
                 continue
+            # If not, the image needs to be uploaded to GCS and its data saved to mongodb
             image_id = upload_blob_to_gcs("stylegan-images", image_blob)
             upload_blob_to_gcs("stylegan-images-vectors", w_vector_blob, image_id)
             image_data = ImageData(

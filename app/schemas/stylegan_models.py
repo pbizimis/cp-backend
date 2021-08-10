@@ -54,7 +54,7 @@ class Model(BaseModel):
                 fid=int(m.group("fid")),
                 version=version[
                     :-8
-                ],  # [:-8] eliminates '_models/' from root path string
+                ],  # [:-8] eliminates '_models/' from root path string, e.g. stylegan2_ada_models/ -> stylegan2_ada
             )
 
     def __hash__(self) -> int:
@@ -86,4 +86,5 @@ class ModelCollection:
         ]
 
 
+# Create the stylegan2ada model collection.
 stylegan2ada_models = ModelCollection("stylegan2_ada_models/")

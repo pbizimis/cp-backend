@@ -8,14 +8,15 @@ from fastapi_auth0 import Auth0, Auth0User
 
 
 def test_auth0_contract():
-
-    # Test FASTAPI application that has the same auth0 schema as the main application
+    """Test a simple FastAPI app against the Auth0 API. The main application only uses these Auth0 methods."""
 
     app = FastAPI()
 
     auth = Auth0(
         domain="capstone-test.eu.auth0.com", api_audience="http://localhost:8000"
     )
+
+    # Define some example routes
 
     @app.get("/public")
     async def get_public():
@@ -39,14 +40,13 @@ def test_auth0_contract():
 
     client = TestClient(app)
 
-    # get auth0 bearer token
+    # Get an Auth0 access token with scope "use:all"
     AUTH0_DOMAIN_ID = os.getenv("AUTH0_DOMAIN_ID")
     AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
     AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
     AUTH0_AUDIENCE = os.getenv("AUTH0_AUDIENCE")
     GRANT_TYPE = "client_credentials"
 
-    # this applcation has access scope 'use:all'
     response = requests.post(
         "https://" + AUTH0_DOMAIN_ID + "/com/oauth/token",
         headers={"content-type": "application/json"},
@@ -61,6 +61,9 @@ def test_auth0_contract():
     )
 
     access_token = response.json()["access_token"]
+
+    ###
+    # Test FastAPI app
 
     resp = client.get(
         "/scure-no-scope", headers={"Authorization": "Bearer " + access_token}

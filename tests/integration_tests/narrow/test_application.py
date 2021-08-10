@@ -19,26 +19,39 @@ from tests.integration_tests.narrow.assertion_dict import assertion_user_result
 async def test_application_with_test_client_and_local_dbs(
     async_authenticated_app, mocker
 ):
-    app, db, fastapi_app = async_authenticated_app
+    """Test a test instance of the application with connections to a local mongodb instance and a local redis instance."""
+    client, db, fastapi_app = async_authenticated_app
 
-    # make sure that db is empty
+    # Make sure that db is empty
     result = await delete_all_user_images_from_mongodb(db, "007")
     result = await delete_all_user_images_from_mongodb(db, "008")
 
+    # Stub upload to google cloud storage
     def override_upload_blob_to_gcs(bucket_name, image, image_id: str = None):
         if not image_id:
             image_id = "this_is_hex_uid"
         return image_id
 
-    # prevent upload and download from gcs
     mocker.patch(
         "app.schemas.stylegan_user.upload_blob_to_gcs",
         side_effect=override_upload_blob_to_gcs,
     )
-    mocker.patch("app.schemas.stylegan_user.download_blob_from_gcs")
 
-    # freeze time
+    # Stub download from google cloud storage
+    def override_download_blob_from_gcs(bucket_name, image_id):
+        with open(
+            "tests/unit_tests/test_stylegan/assertion_files/save_vector_as_bytes_assertion_result.txt",
+            "rb",
+        ) as f:
+            w_bytes_value = f.read()
+        return w_bytes_value
 
+    mocker.patch(
+        "app.schemas.stylegan_user.download_blob_from_gcs",
+        side_effect=override_download_blob_from_gcs,
+    )
+
+    # Mock image data by freezing image creation time for easier assertion
     class ImageData(BaseModel):
         url: str
         auth0_id: str
@@ -50,7 +63,7 @@ async def test_application_with_test_client_and_local_dbs(
 
     mocker.patch("app.schemas.stylegan_user.ImageData", side_effect=return_image)
 
-    # at this point there are only stylegan2ada models
+    # Create assertion response
     stylegan2ada_models = os.listdir("stylegan2_ada_models/")
     stylegan2ada_models = [
         Model.from_filename(x, "stylegan2_ada_models/") for x in stylegan2ada_models
@@ -60,12 +73,15 @@ async def test_application_with_test_client_and_local_dbs(
         "stylegan_models": [{"version": "StyleGan2ADA", "models": stylegan2ada_models}]
     }
 
-    resp = await app.get("/api/v1/models")
+    ###
+    # Test /models
+    resp = await client.get("/api/v1/models")
     assert resp.status_code == 200
     assert resp.json() == assertion_resp
 
-    resp = await app.get("/api/v1/stylegan2ada/methods")
-
+    ###
+    # Test /stylegan2ada/methods
+    resp = await client.get("/api/v1/stylegan2ada/methods")
     assert resp.status_code == 200
     for value in resp.json().values():
         try:
@@ -73,12 +89,12 @@ async def test_application_with_test_client_and_local_dbs(
         except:
             pytest.fail(value, "needs to be of type StyleGanMethod!")
 
-    # GENERATION
-
+    ###
+    # Test /stylegan2ada/generate
     generation_model = stylegan2ada_models[0]
 
-    # seed defined
-    resp = await app.post(
+    # Generate from seed
+    resp = await client.post(
         "/api/v1/stylegan2ada/generate",
         json=Generation(model=generation_model, truncation=1, seed="1234").dict(),
     )
@@ -87,8 +103,8 @@ async def test_application_with_test_client_and_local_dbs(
     assert image_id == "this_is_hex_uid"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
-    # seed empty (random)
-    resp = await app.post(
+    # Generate from random seed
+    resp = await client.post(
         "/api/v1/stylegan2ada/generate",
         json=Generation(model=generation_model, truncation=1, seed="").dict(),
     )
@@ -97,12 +113,12 @@ async def test_application_with_test_client_and_local_dbs(
     assert image_id == "this_is_hex_uid"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
-    # STYLE MIX
-
+    ###
+    # Test /stylegan2ada/stylemix
     stylemix_model = stylegan2ada_models[0]
 
-    # stylemix two seeds
-    resp = await app.post(
+    # Style mix two seeds
+    resp = await client.post(
         "/api/v1/stylegan2ada/stylemix",
         json=StyleMix(
             model=stylemix_model,
@@ -121,21 +137,8 @@ async def test_application_with_test_client_and_local_dbs(
     assert col_image_id == "this_is_hex_uid"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
-    def override_download_blob_from_gcs(bucket_name, image_id):
-        with open(
-            "tests/unit_tests/test_stylegan/assertion_files/save_vector_as_bytes_assertion_result.txt",
-            "rb",
-        ) as f:
-            w_bytes_value = f.read()
-        return w_bytes_value
-
-    mocker.patch(
-        "app.schemas.stylegan_user.download_blob_from_gcs",
-        side_effect=override_download_blob_from_gcs,
-    )
-
-    # stylemix seed and already existing image (row, col)
-    resp = await app.post(
+    # Style mix seed and already existing image (row, col)
+    resp = await client.post(
         "/api/v1/stylegan2ada/stylemix",
         json=StyleMix(
             model=stylemix_model,
@@ -154,8 +157,8 @@ async def test_application_with_test_client_and_local_dbs(
     assert col_image_id == "image_id"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
-    # stylemix seed and already existing image (col, row)
-    resp = await app.post(
+    # Style mix seed and already existing image (col, row)
+    resp = await client.post(
         "/api/v1/stylegan2ada/stylemix",
         json=StyleMix(
             model=stylemix_model,
@@ -174,8 +177,8 @@ async def test_application_with_test_client_and_local_dbs(
     assert row_image_id == "image_id"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
-    # stylemix two already existing images
-    resp = await app.post(
+    # Style mix two already existing images
+    resp = await client.post(
         "/api/v1/stylegan2ada/stylemix",
         json=StyleMix(
             model=stylemix_model,
@@ -194,13 +197,16 @@ async def test_application_with_test_client_and_local_dbs(
     assert col_image_id == "image_id_2"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
-    # USER
-
-    resp = await app.get("/api/v1/user/images")
+    ###
+    # Test /user/images
+    resp = await client.get("/api/v1/user/images")
     all_user_images = json.loads(resp.text)
     assert all_user_images == assertion_user_result
 
-    # RATELIMIT
+    ###
+    # Test ratelimits
+
+    # Change ratelimit config
     def override_get_redis_ratelimit_config():
         return 1, timedelta(seconds=5)
 
@@ -208,7 +214,8 @@ async def test_application_with_test_client_and_local_dbs(
         get_redis_ratelimit_config
     ] = override_get_redis_ratelimit_config
 
-    resp = await app.post(
+    # Last request that is allowed
+    resp = await client.post(
         "/api/v1/stylegan2ada/stylemix",
         json=StyleMix(
             model=stylemix_model,
@@ -223,7 +230,8 @@ async def test_application_with_test_client_and_local_dbs(
     assert col_image_id == "image_id_2"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
-    resp = await app.post(
+    # Request is blocked
+    resp = await client.post(
         "/api/v1/stylegan2ada/stylemix",
         json=StyleMix(
             model=stylemix_model,
@@ -235,10 +243,10 @@ async def test_application_with_test_client_and_local_dbs(
     )
     resp.json() == {"message": "You are rate limited!"}
 
+    ###
     # DELETE (CLEANUP)
-
     await delete_all_user_images_from_mongodb(db, auth0_id="007")
 
-    # The asnyc http library used for this integration test does not support bodies on http DELETE requests.
-    # Usually the DELETE methods can have a request body as specified in https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE
-    # Therefore, DELETE tests are continued in the end2end test as well as unit tests
+    # The asnyc http library used for this integration test does not support bodies on HTTP DELETE requests.
+    # Usually, the DELETE methods can have a request body as specified in https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE.
+    # Therefore, DELETE tests are continued in the end2end test as well as unit tests.

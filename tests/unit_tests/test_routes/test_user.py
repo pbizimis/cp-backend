@@ -8,7 +8,7 @@ user_url = "/api/v1/user/images"
 
 
 def test_get_user_images_unauthenticated(test_client):
-    """Wrong http method"""
+    """Unit test unauthenticated request."""
     client, app = test_client
 
     resp = client.get(user_url)
@@ -17,6 +17,7 @@ def test_get_user_images_unauthenticated(test_client):
 
 
 def test_get_user_images_authenticated_right_payload(test_authenticated_client):
+    """Unit test an authenticated request with right payload."""
     client, app = test_authenticated_client
 
     resp = client.get(user_url)
@@ -65,9 +66,10 @@ def test_get_user_images_authenticated_right_payload(test_authenticated_client):
 
 
 def test_delete_user_images_with_list(test_authenticated_client):
+    """Unit test an authenticated request that deletes a list of user image data."""
     client, app = test_authenticated_client
-
     data = '{"id_list": ["id1", "id2"]}'
+
     resp = client.delete(
         user_url, headers={"Content-Type": "application/json"}, data=data
     )
@@ -77,6 +79,7 @@ def test_delete_user_images_with_list(test_authenticated_client):
 
 
 def test_delete_user_images_all(test_authenticated_client):
+    """Unit test an authenticated request that deletes all of the user's image data."""
     client, app = test_authenticated_client
 
     data = '{"id_list": [], "all_documents": true}'

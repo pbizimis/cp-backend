@@ -29,7 +29,7 @@ def generate_image_stylegan2ada(model: Any, generation_options) -> dict:
     seed = generation_options.seed
 
     if not seed:
-        seed = random.randint(0, 2 ** 32 - 1)  # 2**32-1 is the highest value
+        seed = random.randint(0, 2 ** 32 - 1)  # 2**32-1 is the highest seed value
 
     img, w = seed_to_array_image(G, seed, truncation_psi)
 

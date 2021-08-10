@@ -15,11 +15,13 @@ from app.stylegan.load_model import load_model_from_pkl_stylegan2ada
 
 unauthenticated_app = get_app()
 authenticated_app = get_app()
-db_stub = AsyncIOMotorClient()
+mongodb_stub = AsyncIOMotorClient()
 
 
 @pytest.fixture(scope="session")
 def G_model():
+    """Return a loaded StyleGan2ADA model."""
+
     class MockModel(BaseModel):
         filename: str
 
@@ -32,6 +34,7 @@ def G_model():
 
 @pytest.fixture(scope="module")
 def test_client():
+    """Yield a test client that is not authenticated."""
     app = unauthenticated_app
     with TestClient(app) as client:
         yield client, app
@@ -39,16 +42,20 @@ def test_client():
 
 @pytest.fixture(scope="module")
 def test_authenticated_client():
+    """Yield a test client that is authenticated."""
     app = authenticated_app
     with TestClient(app) as client:
+
+        def override_get_mongodb():
+            return mongodb_stub
 
         def override_check_user_ratelimit():
             return ("007", False)
 
-        def authenticated_user():
+        def override_auth0_user():
             return {"id": "007", "permissions": None, "email": None}
 
-        class OverrideStyleGanUser:
+        class MockStyleGanUser:
             def __init__(
                 self, user, db, stylegan_class=None, stylegan_method_options=None
             ):
@@ -122,14 +129,9 @@ def test_authenticated_client():
             def get_class(cls):
                 return cls
 
-        def override_get_db():
-            return db_stub
-
-        app.dependency_overrides[auth.get_user] = authenticated_user
+        app.dependency_overrides[auth.get_user] = override_auth0_user
         app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
-        app.dependency_overrides[
-            StyleGanUser.get_class
-        ] = OverrideStyleGanUser.get_class
-        app.dependency_overrides[get_mongodb] = override_get_db
+        app.dependency_overrides[StyleGanUser.get_class] = MockStyleGanUser.get_class
+        app.dependency_overrides[get_mongodb] = override_get_mongodb
 
         yield client, app

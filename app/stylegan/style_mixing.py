@@ -41,6 +41,7 @@ def style_mix_two_images_stylegan2ada(
     col_style_name = stylemix_options.styles
     noise_mode = "const"
 
+    # The style definitions Coarse, Middle, and Fine are taken from the official StyleGan paper. See https://arxiv.org/pdf/1812.04948.pdf page 4
     col_styles_dict = {
         "Coarse": [x for x in range(0, 2)],
         "Middle": [x for x in range(2, 6)],
@@ -51,6 +52,7 @@ def style_mix_two_images_stylegan2ada(
 
     if not (isinstance(row_image, bytes) and isinstance(col_image, bytes)):
 
+        # The loaded feature vector if the style mix is with a already generated image.
         ws = None
 
         if isinstance(row_image, bytes) and isinstance(col_image, int):
@@ -73,24 +75,28 @@ def style_mix_two_images_stylegan2ada(
         seed_images = []
         raw_ws = []
 
+        # Generate images from seeds.
         for seed in all_seeds:
             image, w = seed_to_array_image(G, seed, truncation_psi)
             raw_ws.append(w)
             seed_images.append(image)
 
-        all_w = torch.Tensor().to(device)
-
+        # Row and column image and feature vector variables for the final result dict.
+        # A variables stays None if the row or column image was already generated and the stylemix is
+        # executed with the feature vector that is pulled from GCS.
         seed_row_image = None
         w_row_blob = None
         seed_col_image = None
         w_col_blob = None
 
+        # The case that two different seeds are style mixed.
         if len(seed_images) == 2:
             seed_row_image = save_image_as_bytes(seed_images[0])
             w_row_blob = save_vector_as_bytes(raw_ws[0])
             seed_col_image = save_image_as_bytes(seed_images[1])
             w_col_blob = save_vector_as_bytes(raw_ws[1])
         else:
+            # The case that either two images with the same seed are style mixed or a mixture (from seed and from feature vector).
             if isinstance(row_seed, int):
                 seed_row_image = save_image_as_bytes(seed_images[0])
                 w_row_blob = save_vector_as_bytes(raw_ws[0])
@@ -102,6 +108,8 @@ def style_mix_two_images_stylegan2ada(
                 seed_col_image = save_image_as_bytes(seed_images[0])
                 w_col_blob = save_vector_as_bytes(raw_ws[0])
 
+        # Concatenates the different feature vectors for the style mix.
+        all_w = torch.Tensor().to(device)
         for w in raw_ws[0]:
             all_w = torch.cat((all_w, w.unsqueeze(0)), 0)
         if len(raw_ws) == 2:
@@ -113,28 +121,36 @@ def style_mix_two_images_stylegan2ada(
 
     else:
 
+        # The case that both style mixed images are already generated and their feature vectors were pulled from GCS.
+
+        # Feature vectors of the style mix partners.
         ws_col = load_vector_from_bytes(col_image)
         ws_row = load_vector_from_bytes(row_image)
+        # A seed name that is necessary for the style mix process.
         col_seed = "col_proj_w"
         row_seed = "row_proj_w"
         all_seeds = [row_seed, col_seed]
+        # Row and column image and feature vector variables for the final result dict.
+        # All are None because no new images were created.
         seed_col_image = None
         w_col_blob = None
         seed_row_image = None
         w_row_blob = None
 
+        # Concatenates the different feature vectors for the style mix.
         all_w = torch.Tensor().to(device)
-
         for w in ws_row:
             all_w = torch.cat((all_w, w.unsqueeze(0)), 0)
         for w in ws_col:
             all_w = torch.cat((all_w, w.unsqueeze(0)), 0)
 
+    # A seed name that is necessary for the style mix process.
     if len(all_seeds) == 1:
         all_seeds.append("proj_w")
 
     w_dict = {seed: w for seed, w in zip(all_seeds, list(all_w))}
 
+    # The style mix
     w = w_dict[row_seed].clone()
     w[col_styles] = w_dict[col_seed][col_styles]
     w = w[np.newaxis]

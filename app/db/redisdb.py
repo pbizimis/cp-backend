@@ -28,7 +28,7 @@ def get_redis_ratelimit_config() -> tuple:
 async def is_ratelimited_redisdb(
     redisdb: aioredis.Redis, key: str, limit: int, period: timedelta
 ) -> bool:
-    """Return if a ratelimit applies for the given key.
+    """Return if a ratelimit applies for the given key. This is an implementation of the Generic Cell Rate Algorithm.
 
     Args:
         redisdb (aioredis.Redis): the redisdb database connection

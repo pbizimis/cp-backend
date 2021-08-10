@@ -10,6 +10,7 @@ from app.db.redisdb import check_user_ratelimit, get_redisdb
 
 @pytest.mark.asyncio
 async def test_redisdb():
+    """Test application logic against a local instance of Redis."""
     r = aioredis.from_url(f"redis://{REDIS_IP}:{REDIS_PORT}")
 
     class MockAuth0User(BaseModel):
@@ -39,5 +40,4 @@ async def test_redisdb():
     )
     assert is_ratelimited == (MockAuth0User(id="222"), False)
 
-    # close redis connection
     await r.close()

@@ -115,6 +115,7 @@ class StyleMix(BaseModel):
 
 
 # The definiton method options of the generation method.
+# The definition allows to make this interface available via the API so that users or a frontend can know what inputs are allowed.
 generation_method = StyleGanMethod(
     name="Generate",
     description="Generate random images or from a certain seed.",
@@ -144,6 +145,7 @@ generation_method = StyleGanMethod(
     ),
 )
 # The definiton method options of the style mix method.
+# The definition allows to make this interface available via the API so that users or a frontend can know what inputs are allowed.
 stylemix_method = StyleGanMethod(
     name="StyleMix",
     description="Style mix two different images. The row image will adapt the styles of the column image.",

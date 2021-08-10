@@ -10,7 +10,7 @@ import app
 from app.schemas.mongodb import ImageData
 from app.schemas.stylegan_models import Model, StyleGanModel
 from app.schemas.stylegan_user import StyleGanUser, download_blob_from_gcs
-from tests.unit_tests.conftest import db_stub
+from tests.unit_tests.conftest import mongodb_stub
 
 
 class MockStyleGanVersion(StyleGanModel):
@@ -48,44 +48,42 @@ mock_method = MockMethod(
     }
 )
 
-auth0_user = Auth0User(sub="007")
+mock_auth0_user = Auth0User(sub="007")
 
 
 def test_styleganuser_init():
+    """Unit test the StyleGanUser class object creation."""
 
-    # create StyleGanUser object without stylegan class or method
-    stylegan_user = StyleGanUser(auth0_user, db_stub)
+    # Create StyleGanUser object without stylegan class or method
+    stylegan_user = StyleGanUser(mock_auth0_user, mongodb_stub)
     assert stylegan_user.user == {"id": "007", "permissions": None, "email": None}
     assert type(stylegan_user.mongodb) == AsyncIOMotorClient
     assert stylegan_user.stylegan_class == None
     assert stylegan_user.stylegan_method_options == None
 
-    # create StyleGanUser object with stylegan class and method
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    # Create StyleGanUser object with stylegan class and method
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
     assert stylegan_user.user == {"id": "007", "permissions": None, "email": None}
     assert type(stylegan_user.mongodb) == AsyncIOMotorClient
     assert stylegan_user.stylegan_class == MockStyleGanVersion
     assert stylegan_user.stylegan_method_options == mock_method
-    # if stylegan class is given, an object is created
     assert type(stylegan_user.stylegan_model) == MockStyleGanVersion
-    # can access loaded model from user object after init
     assert stylegan_user.stylegan_model.model == "new model"
 
 
 def test_styleganuser_get_class():
+    """Unit test the StyleGanUser class method."""
     assert StyleGanUser.get_class() == StyleGanUser
 
 
 def test_styleganuser_get_seed_or_image_vector(mocker):
-
-    # return int if string is digits
-    image_string = "1234"
-    assert StyleGanUser.get_seed_or_image_vector(image_string) == int(1234)
-
-    # call download_blob_from_gcs if string is not digits
+    """Unit test the StyleGanUser static method."""
     mocker.patch("app.schemas.stylegan_user.download_blob_from_gcs")
-    image_string = "hexuid"
-    StyleGanUser.get_seed_or_image_vector(image_string)
+
+    assert StyleGanUser.get_seed_or_image_vector("1234") == int(1234)
+    StyleGanUser.get_seed_or_image_vector("hexuid")
     app.schemas.stylegan_user.download_blob_from_gcs.assert_called_once_with(
         "stylegan-images-vectors", "hexuid"
     )
@@ -93,22 +91,30 @@ def test_styleganuser_get_seed_or_image_vector(mocker):
 
 @pytest.mark.asyncio
 async def test_get_user_images(mocker):
+    """Unit test the StyleGanUser get_user_images method."""
     mocker.patch("app.schemas.stylegan_user.get_user_images_from_mongodb")
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
+
     await stylegan_user.get_user_images()
     app.schemas.stylegan_user.get_user_images_from_mongodb.assert_called_once_with(
-        db_stub, "007"
+        mongodb_stub, "007"
     )
 
 
 def test_generate_image():
-
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    """Unit test the StyleGanUser generate_image method."""
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
     stylegan_user.generate_image()
     assert stylegan_user.result_images_dict == "generate image"
 
 
 def test_style_mix_images(mocker):
+    """Unit test the StyleGanUser style_mix_images method."""
+
     def mock_get_seed_or_image_vector(value):
         return value
 
@@ -117,13 +123,18 @@ def test_style_mix_images(mocker):
         side_effect=mock_get_seed_or_image_vector,
     )
 
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
+
     stylegan_user.style_mix_images()
     assert stylegan_user.result_images_dict == "stylemix 1234 and 5678"
 
 
 @pytest.mark.asyncio
 async def test_save_user_images(mocker):
+    """Unit test the StyleGanUser save_user_images method."""
+
     def mock_upload_blob_to_gcs(*values):
         return "random_id_for_" + values[1]
 
@@ -133,7 +144,10 @@ async def test_save_user_images(mocker):
     )
     mocker.patch("app.schemas.stylegan_user.save_user_image_in_mongodb")
 
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    # Case if style mix is executed with row and col images from seeds
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
     stylegan_user.result_images_dict = {
         "result_image": ("result_image", "result_vector"),
         "row_image": ("seed_row_image", "w_row_blob"),
@@ -146,8 +160,10 @@ async def test_save_user_images(mocker):
         "col_image": "random_id_for_seed_col_image",
     }
 
-    # case if style mix is executed with row and col images that are already in db
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    # Case if style mix is executed with row and col images that are already in db
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
     stylegan_user.result_images_dict = {
         "result_image": ("result_image", "result_vector"),
         "row_image": (None, None),
@@ -160,8 +176,10 @@ async def test_save_user_images(mocker):
         "col_image": "5678",
     }
 
-    # case if style mix is executed with row image that is already in db
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    # Case if style mix is executed with row image that is already in db
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
     stylegan_user.result_images_dict = {
         "result_image": ("result_image", "result_vector"),
         "row_image": (None, None),
@@ -174,8 +192,10 @@ async def test_save_user_images(mocker):
         "col_image": "random_id_for_seed_col_image",
     }
 
-    # case if style mix is executed with col image that is already in db
-    stylegan_user = StyleGanUser(auth0_user, db_stub, MockStyleGanVersion, mock_method)
+    # Case if style mix is executed with col image that is already in db
+    stylegan_user = StyleGanUser(
+        mock_auth0_user, mongodb_stub, MockStyleGanVersion, mock_method
+    )
     stylegan_user.result_images_dict = {
         "result_image": ("result_image", "result_vector"),
         "row_image": ("seed_row_image", "w_row_blob"),
@@ -188,6 +208,7 @@ async def test_save_user_images(mocker):
         "col_image": "5678",
     }
 
+    # Case if generation is executed
     stylegan_user.result_images_dict = {
         "result_image": ("result_image", "result_vector")
     }

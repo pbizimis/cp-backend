@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from pydantic import BaseModel
 
 from app.stylegan.generation import generate_image_stylegan2ada
@@ -7,36 +8,48 @@ from app.stylegan.load_model import load_model_from_pkl_stylegan2ada
 from app.stylegan.style_mixing import style_mix_two_images_stylegan2ada
 
 
-def test_style_mix_two_images_stylegan2ada(G_model, mocker):
+# Module access to byte dict result of a generation process.
+# Is needed for maximum unit test coverage.
+class ByteDict:
+    byte_dict = {}
 
-    # prevent the saving to bytes and just return a list converted to a string for comparison
+
+class MockGenerationOptions(BaseModel):
+    truncation: float
+    seed: str = None
+
+
+class MockStyleMixOptions(BaseModel):
+    truncation: float
+    styles: str
+
+
+@pytest.fixture(scope="module")
+def mock_saving(module_mocker):
+    """Stub the saving process to bytes for easier assertion."""
+
     def return_raw_values(value):
         return str(value.tolist())
 
-    mocker.patch(
+    module_mocker.patch(
         "app.stylegan.style_mixing.save_image_as_bytes", side_effect=return_raw_values
     )
-    mocker.patch(
+    module_mocker.patch(
         "app.stylegan.style_mixing.save_vector_as_bytes", side_effect=return_raw_values
     )
 
-    # Mock option models
-    class GenerationOptions(BaseModel):
-        truncation: float
-        seed: str = None
 
-    class StyleMixOptions(BaseModel):
-        truncation: float
-        styles: str
+def test_style_mix_two_images_stylegan2ada_existing(G_model, mock_saving):
+    """Unit test the StyleGan2ADA style_mix process with a two existing images."""
 
-    # Generate a real image byte dict (byte image and w vector)
     byte_dict = generate_image_stylegan2ada(
-        G_model, GenerationOptions(truncation=1, seed="1234")
+        G_model, MockGenerationOptions(truncation=1, seed="1234")
     )
+    ByteDict.byte_dict = byte_dict
 
     result_stylemix_with_bytes = style_mix_two_images_stylegan2ada(
         G_model,
-        StyleMixOptions(truncation=1, styles="Middle"),
+        MockStyleMixOptions(truncation=1, styles="Middle"),
         byte_dict["result_image"][1],
         byte_dict["result_image"][1],
     )
@@ -60,8 +73,11 @@ def test_style_mix_two_images_stylegan2ada(G_model, mocker):
     assert result_stylemix_with_bytes["col_image"][0] == None
     assert result_stylemix_with_bytes["col_image"][1] == None
 
+
+def test_style_mix_two_images_stylegan2ada_seeds(G_model, mock_saving):
+    """Unit test the StyleGan2ADA style_mix process with a two images from seeds."""
     result_stylemix_with_seeds = style_mix_two_images_stylegan2ada(
-        G_model, StyleMixOptions(truncation=1, styles="Middle"), 65473, 7453
+        G_model, MockStyleMixOptions(truncation=1, styles="Middle"), 65473, 7453
     )
 
     with open(
@@ -95,8 +111,11 @@ def test_style_mix_two_images_stylegan2ada(G_model, mocker):
         == assertion_result_stylemix_with_seeds["col_image"][1]
     )
 
+
+def test_style_mix_two_images_stylegan2ada_same_seed(G_model, mock_saving):
+    """Unit test the StyleGan2ADA style_mix process with a two images from same seeds."""
     result_stylemix_with_seeds = style_mix_two_images_stylegan2ada(
-        G_model, StyleMixOptions(truncation=1, styles="Middle"), 7453, 7453
+        G_model, MockStyleMixOptions(truncation=1, styles="Middle"), 7453, 7453
     )
 
     with open(
@@ -130,10 +149,13 @@ def test_style_mix_two_images_stylegan2ada(G_model, mocker):
         == assertion_result_stylemix_with_seeds["col_image"][1]
     )
 
+
+def test_style_mix_two_images_stylegan2ada_mix_row_col(G_model, mock_saving):
+    """Unit test the StyleGan2ADA style_mix process of an existing row image and a column seed image."""
     result_stylemix_with_mixed_row_col = style_mix_two_images_stylegan2ada(
         G_model,
-        StyleMixOptions(truncation=1, styles="Middle"),
-        byte_dict["result_image"][1],
+        MockStyleMixOptions(truncation=1, styles="Middle"),
+        ByteDict.byte_dict["result_image"][1],
         7453,
     )
 
@@ -162,11 +184,14 @@ def test_style_mix_two_images_stylegan2ada(G_model, mocker):
         == assertion_result_stylemix_with_mixed_row_col["col_image"][1]
     )
 
+
+def test_style_mix_two_images_stylegan2ada_mix_col_row(G_model, mock_saving):
+    """Unit test the StyleGan2ADA style_mix process of an existing column image and a row seed image."""
     result_stylemix_with_mixed_col_row = style_mix_two_images_stylegan2ada(
         G_model,
-        StyleMixOptions(truncation=1, styles="Middle"),
+        MockStyleMixOptions(truncation=1, styles="Middle"),
         65473,
-        byte_dict["result_image"][1],
+        ByteDict.byte_dict["result_image"][1],
     )
 
     with open(

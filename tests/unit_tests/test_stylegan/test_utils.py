@@ -14,6 +14,7 @@ from app.stylegan.utils import (
 
 
 def test_seed_to_array_image(G_model):
+    """Unit test generation from seed."""
     result_image, result_w = seed_to_array_image(G_model, 1234, 1.0)
 
     with open(
@@ -27,7 +28,7 @@ def test_seed_to_array_image(G_model):
 
 
 def test_w_vector_to_image(G_model):
-
+    """Unit test generation from feature vector w."""
     with open(
         "tests/unit_tests/test_stylegan/assertion_files/seed_to_array_assertion_result.txt",
         "r",
@@ -43,7 +44,7 @@ def test_w_vector_to_image(G_model):
 
 
 def test_save_image_as_bytes():
-
+    """Unit test image saving as a byte object."""
     with open(
         "tests/unit_tests/test_stylegan/assertion_files/seed_to_array_assertion_result.txt",
         "r",
@@ -62,7 +63,7 @@ def test_save_image_as_bytes():
 
 
 def test_save_vector_as_bytes():
-
+    """Unit test vector tensor saving as a byte object."""
     with open(
         "tests/unit_tests/test_stylegan/assertion_files/seed_to_array_assertion_result.txt",
         "r",
@@ -81,12 +82,11 @@ def test_save_vector_as_bytes():
         assertion_bytes_value = f.read()
 
     assert type(assertion_bytes_value) == bytes
-    # make sure that saved bytes ensure vector contents
     assert torch.equal(w, torch.load(BytesIO(assertion_bytes_value)))
 
 
 def test_load_vector_from_bytes():
-
+    """Unit test the loading of a vector tensor from a byte object."""
     with open(
         "tests/unit_tests/test_stylegan/assertion_files/seed_to_array_assertion_result.txt",
         "r",

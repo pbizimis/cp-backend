@@ -19,16 +19,19 @@ current_date = datetime.datetime(2020, 2, 2, 20, 20, 20)
 
 @pytest.mark.asyncio
 async def test_get_mongodb():
+    """Unit test MongoDB client retrieval."""
     client = await get_mongodb()
     assert type(client) == AsyncIOMotorClient
-
-    await close_mongodb()
-    assert True
 
 
 @pytest.mark.asyncio
 async def test_mongodb_correct_cases(async_mongodb):
+    """Unit test application logic against a mocked instance of MongoDB. This test tests correct cases."""
 
+    ###
+    # Test saving
+
+    # Save first mock image
     image_data = {
         "url": "url1",
         "auth0_id": "007",
@@ -37,15 +40,15 @@ async def test_mongodb_correct_cases(async_mongodb):
     }
     image = ImageData(**image_data)
 
-    # save one image
     await save_user_image_in_mongodb(async_mongodb, image)
-    # get images
     images = await get_user_images_from_mongodb(async_mongodb, "007")
+
     assert len(images) == 1
     assert images == [
         ImageData(url="url1", auth0_id="007", creation_date=current_date, method={})
     ]
 
+    # Save second mock image
     image_data = {
         "url": "url2",
         "auth0_id": "007",
@@ -54,17 +57,16 @@ async def test_mongodb_correct_cases(async_mongodb):
     }
     image = ImageData(**image_data)
 
-    # save another image
     await save_user_image_in_mongodb(async_mongodb, image)
-    # get images
     images = await get_user_images_from_mongodb(async_mongodb, "007")
+
     assert len(images) == 2
     assert images == [
         ImageData(url="url1", auth0_id="007", creation_date=current_date, method={}),
         ImageData(url="url2", auth0_id="007", creation_date=current_date, method={}),
     ]
 
-    # save image for different user
+    # Save image for different user
     image_data = {
         "url": "url1",
         "auth0_id": "008",
@@ -72,66 +74,73 @@ async def test_mongodb_correct_cases(async_mongodb):
         "method": {},
     }
     image = ImageData(**image_data)
+
     await save_user_image_in_mongodb(async_mongodb, image)
-    # get images
     images = await get_user_images_from_mongodb(async_mongodb, "007")
+
     assert len(images) == 2
     assert images == [
         ImageData(url="url1", auth0_id="007", creation_date=current_date, method={}),
         ImageData(url="url2", auth0_id="007", creation_date=current_date, method={}),
     ]
 
-    # delete image for user 007
+    ###
+    # Test deletion
+
+    # Delete image for user 007
     result = await delete_user_images_from_mongodb(async_mongodb, "007", ["url1"])
-    assert result.deleted_count == 1
-    # get images
     images = await get_user_images_from_mongodb(async_mongodb, "007")
+
+    assert result.deleted_count == 1
     assert len(images) == 1
     assert images == [
         ImageData(url="url2", auth0_id="007", creation_date=current_date, method={})
     ]
 
-    # delete image for user 008
+    # Delete image for user 008
     result = await delete_user_images_from_mongodb(async_mongodb, "008", ["url1"])
-    assert result.deleted_count == 1
-    # get images
     images = await get_user_images_from_mongodb(async_mongodb, "008")
+
+    assert result.deleted_count == 1
     assert len(images) == 0
     assert images == []
 
-    # save many images
+    ###
+    # Test deletion of all
+
+    # Save multiple images for user 007
     image_data = {
         "auth0_id": "007",
         "creation_date": current_date,
         "method": {},
     }
-
     list_of_images = [ImageData(url=i, **image_data) for i in range(10)]
 
-    # save multiple image
     for image in list_of_images:
         await save_user_image_in_mongodb(async_mongodb, image)
-
     images = await get_user_images_from_mongodb(async_mongodb, "007")
+
     assert len(images) == 11
 
-    # delete all images for user 007
+    # Delete all images for user 007
     result = await delete_all_user_images_from_mongodb(async_mongodb, "007")
+
     assert result.deleted_count == 11
 
 
 @pytest.mark.asyncio
 async def test_mongodb_wrong_cases(async_mongodb):
+    """Unit test application logic against a mocked instance of MongoDB. This test tests wrong cases."""
 
-    # data needs to be a pydantic object
+    # Data needs to be a pydantic object
     with pytest.raises(AttributeError):
         await save_user_image_in_mongodb(async_mongodb, {"not a": "pydantic object"})
 
-    # user not in db (has no images)
+    # User not in db (has no images)
     images = await get_user_images_from_mongodb(async_mongodb, "007")
     assert len(images) == 0
     assert images == []
 
-    # delete not existing image
+    # Delete not existing image
     result = await delete_user_images_from_mongodb(async_mongodb, "007", ["url"])
     assert result.deleted_count == 0
