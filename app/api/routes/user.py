@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.core.auth0 import auth
 from app.core.config import IMAGE_STORAGE_BASE_URL
-from app.db.mongodb import get_mongodb
+from app.db.mongodb import mongodb
 from app.schemas.mongodb import DeletionOptions
 from app.schemas.stylegan_user import StyleGanUser
 
@@ -15,14 +15,14 @@ router = APIRouter()
 
 @router.get("/images")
 async def get_user_images(
-    mongodb: AsyncIOMotorClient = Depends(get_mongodb),
+    mongodb: AsyncIOMotorClient = Depends(mongodb.get_client),
     user: Auth0User = Security(auth.get_user, scopes=["use:all"]),
     stylegan_user_class=Depends(StyleGanUser.get_class),
 ) -> dict:
     """Get all images of the user.
 
     Args:
-        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(get_mongodb).
+        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(mongodb.get_client).
         user (Auth0User, optional): [description]. Defaults to Security(auth.get_user, scopes=["use:all"]).
         stylegan_user_class ([type], optional): the current user object (decoded JWT). Defaults to Depends(StyleGanUser.get_class).
 
@@ -39,7 +39,7 @@ async def get_user_images(
 @router.delete("/images")
 async def delete_user_images(
     deletion_options: DeletionOptions,
-    mongodb: AsyncIOMotorClient = Depends(get_mongodb),
+    mongodb: AsyncIOMotorClient = Depends(mongodb.get_client),
     user: Auth0User = Security(auth.get_user, scopes=["use:all"]),
     stylegan_user_class=Depends(StyleGanUser.get_class),
 ) -> dict:
@@ -47,7 +47,7 @@ async def delete_user_images(
 
     Args:
         deletion_options (DeletionOptions): a pydantic model that validates DELETE data
-        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(get_mongodb).
+        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(mongodb.get_client).
         user (Auth0User, optional): the current user object (decoded JWT). Defaults to Security(auth.get_user, scopes=["use:all"]).
         stylegan_user_class ([type], optional): the stylegan user class. Defaults to Depends(StyleGanUser.get_class).
 

@@ -5,8 +5,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 
 from app.core.auth0 import auth
-from app.db.mongodb import get_mongodb
+from app.db.mongodb import mongodb
 from app.main import get_app
+from app.schemas.mongodb import MongoClient
 
 
 class MockAuth0User(BaseModel):
@@ -21,17 +22,14 @@ async def async_authenticated_app():
 
     authenticated_app = get_app()
     client = TestClient(authenticated_app)
-    mongodb = AsyncIOMotorClient("localhost", 27017)
-
-    # Mock functions
-    def override_get_mongodb():
-        return mongodb
+    mongodb_test = MongoClient()
+    mongodb_test.client = AsyncIOMotorClient("localhost", 27017)
 
     def authenticated_user():
         return MockAuth0User(**{"id": "007"})
 
     authenticated_app.dependency_overrides[auth.get_user] = authenticated_user
-    authenticated_app.dependency_overrides[get_mongodb] = override_get_mongodb
+    authenticated_app.dependency_overrides[mongodb.get_client] = mongodb_test.get_client
 
     async with AsyncClient(app=authenticated_app, base_url="http://localhost") as ac:
-        yield ac, mongodb, authenticated_app
+        yield ac, mongodb_test, authenticated_app

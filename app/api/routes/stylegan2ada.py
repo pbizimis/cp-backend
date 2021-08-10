@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.core.auth0 import auth
 from app.core.config import IMAGE_STORAGE_BASE_URL
-from app.db.mongodb import get_mongodb
+from app.db.mongodb import mongodb
 from app.db.redisdb import check_user_ratelimit
 from app.schemas.stylegan2ada import (
     Generation,
@@ -22,7 +22,7 @@ router = APIRouter()
 @router.post("/stylemix")
 async def style_mix_images_stylegan2ada(
     style_mix_options: StyleMix,
-    mongodb: AsyncIOMotorClient = Depends(get_mongodb),
+    mongodb: AsyncIOMotorClient = Depends(mongodb.get_client),
     ratelimited_user: tuple = Depends(check_user_ratelimit),
     stylegan_user_class=Depends(StyleGanUser.get_class),
 ) -> dict:
@@ -30,7 +30,7 @@ async def style_mix_images_stylegan2ada(
 
     Args:
         style_mix_options (StyleMix): a pydantic model that validates POST data
-        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(get_mongodb).
+        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(mongodb.get_client).
         ratelimited_user (tuple, optional): a tuple with user object and if they should be ratelimited. Defaults to Depends(check_user_ratelimit).
         stylegan_user_class ([type], optional): the stylegan user class. Defaults to Depends(StyleGanUser.get_class).
 
@@ -54,7 +54,7 @@ async def style_mix_images_stylegan2ada(
 @router.post("/generate")
 async def generate_image_stylegan2ada(
     generation_options: Generation,
-    mongodb: AsyncIOMotorClient = Depends(get_mongodb),
+    mongodb: AsyncIOMotorClient = Depends(mongodb.get_client),
     ratelimited_user: tuple = Depends(check_user_ratelimit),
     stylegan_user_class=Depends(StyleGanUser.get_class),
 ) -> dict:
@@ -62,7 +62,7 @@ async def generate_image_stylegan2ada(
 
     Args:
         generation_options (Generation): a pydantic model that validates POST data
-        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(get_mongodb).
+        mongodb (AsyncIOMotorClient, optional): the mongodb database connection. Defaults to Depends(mongodb.get_client).
         ratelimited_user (tuple, optional): a tuple with user object and if they should be ratelimited. Defaults to Depends(check_user_ratelimit).
         stylegan_user_class ([type], optional): the stylegan user class. Defaults to Depends(StyleGanUser.get_class).
 

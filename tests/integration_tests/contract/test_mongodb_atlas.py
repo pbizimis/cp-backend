@@ -5,10 +5,8 @@ import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.db.mongodb import (
-    close_mongodb,
     delete_all_user_images_from_mongodb,
     delete_user_images_from_mongodb,
-    get_mongodb,
     get_user_images_from_mongodb,
     save_user_image_in_mongodb,
 )
@@ -22,8 +20,8 @@ async def test_mongodb_correct_cases(mocker):
     """Test application logic against an instance of MongoDB Atlas. This test tests correct cases."""
 
     conn_str = f"mongodb+srv://admin:{os.environ['MONGOPW']}@cluster0.bgniv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-    client = AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
-    mocker.patch("app.db.mongodb.db_name", "testing")
+    mongodb_client = AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
+    mocker.patch("app.db.mongodb.MONGO_DB_NAME", "testing")
 
     ###
     # Test saving
@@ -37,9 +35,9 @@ async def test_mongodb_correct_cases(mocker):
     }
     image = ImageData(**image_data)
 
-    await save_user_image_in_mongodb(client, image)
+    await save_user_image_in_mongodb(mongodb_client, image)
 
-    images = await get_user_images_from_mongodb(client, "007")
+    images = await get_user_images_from_mongodb(mongodb_client, "007")
     assert len(images) == 1
     assert images == [
         ImageData(url="url1", auth0_id="007", creation_date=current_date, method={})
@@ -54,8 +52,8 @@ async def test_mongodb_correct_cases(mocker):
     }
     image = ImageData(**image_data)
 
-    await save_user_image_in_mongodb(client, image)
-    images = await get_user_images_from_mongodb(client, "007")
+    await save_user_image_in_mongodb(mongodb_client, image)
+    images = await get_user_images_from_mongodb(mongodb_client, "007")
     assert len(images) == 2
     assert images == [
         ImageData(url="url1", auth0_id="007", creation_date=current_date, method={}),
@@ -70,9 +68,9 @@ async def test_mongodb_correct_cases(mocker):
         "method": {},
     }
     image = ImageData(**image_data)
-    await save_user_image_in_mongodb(client, image)
+    await save_user_image_in_mongodb(mongodb_client, image)
 
-    images = await get_user_images_from_mongodb(client, "007")
+    images = await get_user_images_from_mongodb(mongodb_client, "007")
     assert len(images) == 2
     assert images == [
         ImageData(url="url1", auth0_id="007", creation_date=current_date, method={}),
@@ -83,18 +81,18 @@ async def test_mongodb_correct_cases(mocker):
     # Test deletion
 
     # Delete image for user 007
-    result = await delete_user_images_from_mongodb(client, "007", ["url1", "url2"])
+    result = await delete_user_images_from_mongodb(mongodb_client, "007", ["url1", "url2"])
     assert result.deleted_count == 2
 
-    images = await get_user_images_from_mongodb(client, "007")
+    images = await get_user_images_from_mongodb(mongodb_client, "007")
     assert len(images) == 0
     assert images == []
 
     # Delete image for user 008
-    result = await delete_user_images_from_mongodb(client, "008", ["url1"])
+    result = await delete_user_images_from_mongodb(mongodb_client, "008", ["url1"])
     assert result.deleted_count == 1
 
-    images = await get_user_images_from_mongodb(client, "008")
+    images = await get_user_images_from_mongodb(mongodb_client, "008")
     assert len(images) == 0
     assert images == []
 
@@ -111,13 +109,13 @@ async def test_mongodb_correct_cases(mocker):
     list_of_images = [ImageData(url=i, **image_data) for i in range(10)]
 
     for image in list_of_images:
-        await save_user_image_in_mongodb(client, image)
+        await save_user_image_in_mongodb(mongodb_client, image)
 
-    images = await get_user_images_from_mongodb(client, "007")
+    images = await get_user_images_from_mongodb(mongodb_client, "007")
     assert len(images) == 10
 
     # Delete all images for user 007
-    result = await delete_all_user_images_from_mongodb(client, "007")
+    result = await delete_all_user_images_from_mongodb(mongodb_client, "007")
     assert result.deleted_count == 10
 
 
@@ -126,18 +124,18 @@ async def test_mongodb_wrong_cases(mocker):
     """Test application logic against an instance of MongoDB Atlas. This test tests wrong cases."""
 
     conn_str = f"mongodb+srv://admin:{os.environ['MONGOPW']}@cluster0.bgniv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-    client = AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
-    mocker.patch("app.db.mongodb.db_name", "testing")
+    mongodb_client = AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
+    mocker.patch("app.db.mongodb.MONGO_DB_NAME", "testing")
 
     # Data needs to be a pydantic object
     with pytest.raises(AttributeError):
-        await save_user_image_in_mongodb(client, {"not a": "pydantic object"})
+        await save_user_image_in_mongodb(mongodb_client, {"not a": "pydantic object"})
 
     # User is not in db (has no images)
-    images = await get_user_images_from_mongodb(client, "007")
+    images = await get_user_images_from_mongodb(mongodb_client, "007")
     assert len(images) == 0
     assert images == []
 
     # Delete not existing image
-    result = await delete_user_images_from_mongodb(client, "007", ["url"])
+    result = await delete_user_images_from_mongodb(mongodb_client, "007", ["url"])
     assert result.deleted_count == 0

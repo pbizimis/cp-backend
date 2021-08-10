@@ -2,7 +2,19 @@ from datetime import datetime
 from typing import List
 
 import pytz
+from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
+
+
+class MongoClient:
+    """The MongoDB client class."""
+
+    def __init__(self):
+        self.client = AsyncIOMotorClient()
+
+    # Get method for FastAPI dependency injection
+    def get_client(self):
+        return self.client
 
 
 class ImageData(BaseModel):

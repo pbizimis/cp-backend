@@ -16,3 +16,7 @@ REDIS_RATELIMIT_REQUESTS = int(os.getenv("REDIS_RATELIMIT_REQUESTS"))
 REDIS_RATELIMIT_PERIOD = timedelta(
     minutes=int(os.getenv("REDIS_RATELIMIT_PERIOD_MINUTES"))
 )
+# MongoDB
+MONGO_URL = str(os.getenv("MONGO_URL"))
+MONGO_DB_NAME = str(os.getenv("MONGO_DB_NAME"))
+MONGO_COLLECTION_NAME = str(os.getenv("MONGO_COLLECTION_NAME"))

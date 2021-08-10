@@ -1,8 +1,10 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.api.main_router import router
-from app.core.config import API_NAME, API_PREFIX, DEBUG, VERSION
+from app.core.config import API_NAME, API_PREFIX, DEBUG, MONGO_URL, VERSION
+from app.db.mongodb import mongodb
 
 
 def get_app() -> FastAPI:
@@ -25,3 +27,15 @@ def get_app() -> FastAPI:
 
 
 app = get_app()
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Handle the startup event of the main application."""
+    mongodb.client = AsyncIOMotorClient(MONGO_URL, serverSelectionTimeoutMS=5000)
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Handle the shutdown event of the main application."""
+    await mongodb.client.close()

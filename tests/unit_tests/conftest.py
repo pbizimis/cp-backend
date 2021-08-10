@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
 
 from app.core.auth0 import auth
-from app.db.mongodb import get_mongodb
+from app.db.mongodb import mongodb
 from app.db.redisdb import check_user_ratelimit
 from app.main import get_app
 from app.schemas.mongodb import ImageData
@@ -15,7 +15,7 @@ from app.stylegan.load_model import load_model_from_pkl_stylegan2ada
 
 unauthenticated_app = get_app()
 authenticated_app = get_app()
-mongodb_stub = AsyncIOMotorClient()
+mongodb_client = AsyncIOMotorClient()
 
 
 @pytest.fixture(scope="session")
@@ -46,8 +46,8 @@ def test_authenticated_client():
     app = authenticated_app
     with TestClient(app) as client:
 
-        def override_get_mongodb():
-            return mongodb_stub
+        def override_get_client():
+            return mongodb_client
 
         def override_check_user_ratelimit():
             return ("007", False)
@@ -132,6 +132,6 @@ def test_authenticated_client():
         app.dependency_overrides[auth.get_user] = override_auth0_user
         app.dependency_overrides[check_user_ratelimit] = override_check_user_ratelimit
         app.dependency_overrides[StyleGanUser.get_class] = MockStyleGanUser.get_class
-        app.dependency_overrides[get_mongodb] = override_get_mongodb
+        app.dependency_overrides[mongodb.get_client] = override_get_client
 
         yield client, app

@@ -20,11 +20,11 @@ async def test_application_with_test_client_and_local_dbs(
     async_authenticated_app, mocker
 ):
     """Test a test instance of the application with connections to a local mongodb instance and a local redis instance."""
-    client, db, fastapi_app = async_authenticated_app
+    client, mongodb, fastapi_app = async_authenticated_app
 
     # Make sure that db is empty
-    result = await delete_all_user_images_from_mongodb(db, "007")
-    result = await delete_all_user_images_from_mongodb(db, "008")
+    result = await delete_all_user_images_from_mongodb(mongodb.client, "007")
+    result = await delete_all_user_images_from_mongodb(mongodb.client, "008")
 
     # Stub upload to google cloud storage
     def override_upload_blob_to_gcs(bucket_name, image, image_id: str = None):
@@ -245,7 +245,7 @@ async def test_application_with_test_client_and_local_dbs(
 
     ###
     # DELETE (CLEANUP)
-    await delete_all_user_images_from_mongodb(db, auth0_id="007")
+    await delete_all_user_images_from_mongodb(mongodb.client, auth0_id="007")
 
     # The asnyc http library used for this integration test does not support bodies on HTTP DELETE requests.
     # Usually, the DELETE methods can have a request body as specified in https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE.
