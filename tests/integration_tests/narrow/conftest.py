@@ -1,3 +1,4 @@
+import aioredis
 import pytest
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
@@ -6,6 +7,7 @@ from pydantic import BaseModel
 
 from app.core.auth0 import auth
 from app.db.mongodb import mongodb
+from app.db.redisdb import redisdb
 from app.main import get_app
 from app.schemas.mongodb import MongoClient
 
@@ -24,6 +26,7 @@ async def async_authenticated_app():
     client = TestClient(authenticated_app)
     mongodb_test = MongoClient()
     mongodb_test.client = AsyncIOMotorClient("localhost", 27017)
+    redisdb.client = aioredis.from_url(f"redis://localhost:6379")
 
     def authenticated_user():
         return MockAuth0User(**{"id": "007"})

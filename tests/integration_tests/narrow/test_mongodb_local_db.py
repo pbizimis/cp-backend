@@ -79,7 +79,9 @@ async def test_mongodb_correct_cases():
     # Test deletion
 
     # Delete image for user 007
-    result = await delete_user_images_from_mongodb(mongodb_client, "007", ["url1", "url2"])
+    result = await delete_user_images_from_mongodb(
+        mongodb_client, "007", ["url1", "url2"]
+    )
     assert result.deleted_count == 2
     images = await get_user_images_from_mongodb(mongodb_client, "007")
     assert len(images) == 0

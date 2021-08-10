@@ -10,8 +10,7 @@ IMAGE_STORAGE_BASE_URL = "https://images.webdesigan.com/"
 AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
 AUTH0_API = os.getenv("AUTH0_API")
 # Redis
-REDIS_IP = os.getenv("REDIS_IP")
-REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_URL = str(os.getenv("REDIS_URL"))
 REDIS_RATELIMIT_REQUESTS = int(os.getenv("REDIS_RATELIMIT_REQUESTS"))
 REDIS_RATELIMIT_PERIOD = timedelta(
     minutes=int(os.getenv("REDIS_RATELIMIT_PERIOD_MINUTES"))

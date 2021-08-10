@@ -5,19 +5,10 @@ from fastapi import Depends, Security
 from fastapi_auth0 import Auth0User
 
 from app.core.auth0 import auth
-from app.core.config import (
-    REDIS_IP,
-    REDIS_PORT,
-    REDIS_RATELIMIT_PERIOD,
-    REDIS_RATELIMIT_REQUESTS,
-)
+from app.core.config import REDIS_RATELIMIT_PERIOD, REDIS_RATELIMIT_REQUESTS, REDIS_URL
+from app.schemas.redisdb import RedisClient
 
-redisdb = aioredis.from_url(f"redis://{REDIS_IP}:{REDIS_PORT}")
-
-
-async def get_redisdb() -> aioredis.Redis:
-    """Get the redisdb client object."""
-    return redisdb
+redisdb = RedisClient()
 
 
 def get_redis_ratelimit_config() -> tuple:
@@ -54,14 +45,14 @@ async def is_ratelimited_redisdb(
 
 
 async def check_user_ratelimit(
-    redisdb: aioredis.Redis = Depends(get_redisdb),
+    redisdb: aioredis.Redis = Depends(redisdb.get_client),
     redis_ratelimit_config: tuple = Depends(get_redis_ratelimit_config),
     user: Auth0User = Security(auth.get_user, scopes=["use:all"]),
 ) -> tuple:
     """Return if the user request is ratelimited.ArithmeticError
 
     Args:
-        redisdb (aioredis.Redis, optional): the redisdb database connection. Defaults to Depends(get_redisdb).
+        redisdb (aioredis.Redis, optional): the redisdb database connection. Defaults to Depends(redisdb.get_client).
         redis_ratelimit_config (tuple, optional): the ratelimit config for this application. Defaults to Depends(get_redis_ratelimit_config).
         user (Auth0User, optional): the current user object (decoded JWT). Defaults to Security(auth.get_user, scopes=["use:all"]).
 
