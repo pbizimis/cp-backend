@@ -1,5 +1,8 @@
 from datetime import datetime
 from typing import List
+import uuid
+
+from pydantic import validator
 
 import pytz
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -43,3 +46,16 @@ class DeletionOptions(BaseModel):
 
     all_documents: bool = False
     id_list: List[str]
+
+    @validator("id_list")
+    def id_list_elements_are_id(cls, id_list):
+        """Validate that the elements of the given list are valid v4 uuids."""
+        try:
+            for image_id in id_list:
+                if uuid.UUID(image_id, version=4):
+                    continue
+                else:
+                    raise ValueError("Please give a list of valid image ids.")
+            return id_list
+        except:
+            raise ValueError("Please give a list of valid image ids.")

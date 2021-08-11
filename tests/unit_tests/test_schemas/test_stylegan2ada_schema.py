@@ -1,5 +1,6 @@
 import app
-from app.schemas.stylegan2ada import StyleGan2ADA
+import pytest
+from app.schemas.stylegan2ada import Generation, StyleGan2ADA, StyleMix
 from app.schemas.stylegan_models import Model
 
 mock_model = Model(**{"img": 31, "res": 512, "fid": 12})
@@ -98,3 +99,87 @@ def test_style_mix(mocker):
     app.schemas.stylegan2ada.style_mix_two_images_stylegan2ada.assert_called_once_with(
         "style_mix_model", {"method_option": "first_option"}, "row_image", "col_image"
     )
+
+
+def test_generation_validation_name():
+    """Unit test the validation of the name attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    mock_generation = Generation(name="RandomString", model=mock_model, truncation=1, seed="23")
+    assert mock_generation.name == "Generation"
+
+
+def test_generation_validation_model():
+    """Unit test the validation of the model attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "wrong"}
+    with pytest.raises(ValueError):
+        Generation(name="RandomString", model=mock_model, truncation=1, seed="23")
+
+
+def test_generation_validation_truncation():
+    """Unit test the validation of the truncation attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    with pytest.raises(ValueError):
+        Generation(name="RandomString", model=mock_model, truncation=-4, seed="23")
+    with pytest.raises(ValueError):
+        Generation(name="RandomString", model=mock_model, truncation=34, seed="23")
+
+
+def test_generation_validation_seed():
+    """Unit test the validation of the seed attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    with pytest.raises(ValueError):
+        Generation(name="RandomString", model=mock_model, truncation=-4, seed="580954301894398")
+    with pytest.raises(ValueError):
+        Generation(name="RandomString", model=mock_model, truncation=-4, seed="Hi, Frank")
+
+
+def test_stylemix_validation_name():
+    """Unit test the validation of the name attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    mock_stylemix = StyleMix(name="RandomString", model=mock_model, row_image="1234", column_image="5678", styles="Middle", truncation=1)
+    assert mock_stylemix.name == "StyleMix"
+
+
+def test_stylemix_validation_model():
+    """Unit test the validation of the model attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "wrong"}
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="1234", column_image="5678", styles="Middle", truncation=1)
+
+
+def test_stylemix_validation_row_image():
+    """Unit test the validation of the row image attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="Wrong", column_image="5678", styles="Middle", truncation=1)
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="-123", column_image="5678", styles="Middle", truncation=1)
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="987324569723458", column_image="5678", styles="Middle", truncation=1)
+
+
+def test_stylemix_validation_column_image():
+    """Unit test the validation of the column image attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="1234", column_image="Wrong", styles="Middle", truncation=1)
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="-1234", column_image="123", styles="Middle", truncation=1)
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="1234", column_image="987324569723458", styles="Middle", truncation=1)
+
+
+def test_stylemix_validation_styles_image():
+    """Unit test the validation of the styles attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="1234", column_image="5678", styles="NotRight", truncation=1)
+
+
+def test_stylemix_validation_truncation():
+    """Unit test the validation of the truncation attribute."""
+    mock_model = {"img": 31, "res": 256, "fid": 12, "version": "stylegan2_ada"}
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="1234", column_image="5678", styles="Middle", truncation=-2134)
+    with pytest.raises(ValueError):
+        StyleMix(name="RandomString", model=mock_model, row_image="1234", column_image="5678", styles="Middle", truncation=897435987435)

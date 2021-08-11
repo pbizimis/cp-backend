@@ -1,6 +1,8 @@
+import random
+import uuid
 from typing import Any, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 from app.schemas.stylegan_methods import (
     Dropdown,
@@ -93,6 +95,37 @@ class Generation(BaseModel):
     truncation: float
     seed: str
 
+    @validator("name")
+    def name_is_default(cls, name):
+        """Return the default for unity."""
+        return "Generation"
+
+    @validator("model")
+    def model_is_valid(cls, model):
+        """Validate the given model."""
+        if model in stylegan2ada_models.models:
+            return model
+        raise ValueError("Please choose one of these models: " + str(stylegan2ada_models.models))
+
+    @validator("seed")
+    def seed_is_empty_or_int(cls, seed):
+        """Validate that the seed is either empty or a valid int."""
+        if seed == "":
+            return seed
+        try:
+            if 0 <= int(seed) <= 4294967295:
+                return seed
+            raise ValueError("Seed must be between 0 and 4294967295, or blank for random.")
+        except:
+            raise ValueError("Seed must be between 0 and 4294967295, or blank for random.")
+
+    @validator("truncation")
+    def truncation_is_in_range(cls, truncation):
+        """Validate that the truncation value is in the correct range."""
+        if -2 <= truncation <= 2:
+            return truncation
+        raise ValueError("Truncation must be between -2 and 2.")
+
 
 class StyleMix(BaseModel):
     """The stylegan2ada style mix method.
@@ -112,6 +145,66 @@ class StyleMix(BaseModel):
     column_image: str
     styles: str
     truncation: float
+
+    @validator("name")
+    def name_is_default(cls, name):
+        """Return the default for unity."""
+        return "StyleMix"
+
+    @validator("model")
+    def model_is_valid(cls, model):
+        """Validate the given model."""
+        if model in stylegan2ada_models.models:
+            return model
+        raise ValueError("Please choose one of these models: " + str(stylegan2ada_models.models))
+
+    @validator("row_image")
+    def row_image_id_or_seed(cls, row_image):
+        """Validate that the row image is either an empty string, a valid seed int or an image id."""
+        if row_image == "":
+            return str(random.randint(0, 2 ** 32 - 1))
+        try:
+            if uuid.UUID(row_image, version=4):
+                return str(row_image)
+        except:
+            pass
+        try:
+            if 0 <= int(row_image) <= 4294967295:
+                return str(row_image)
+        except:
+            pass
+        raise ValueError("Row image must be empty for a random seed, a seed between 0 and 4294967295, or a valid image id.")
+
+    @validator("column_image")
+    def column_image_id_or_seed(cls, column_image):
+        """Validate that the column image is either an empty string, a valid seed int or an image id."""
+        if column_image == "":
+            return str(random.randint(0, 2 ** 32 - 1))
+        try:
+            if uuid.UUID(column_image, version=4):
+                return str(column_image)
+        except:
+            pass
+        try:
+            if 0 <= int(column_image) <= 4294967295:
+                return str(column_image)
+        except:
+            pass
+        raise ValueError("Column image must be empty for a random seed, a seed between 0 and 4294967295, or a valid image id.")
+
+    @validator("styles")
+    def style_is_valid(cls, styles):
+        """Validate the styles string."""
+        if styles == "Coarse" or styles == "Middle" or styles == "Fine":
+            return styles
+        raise ValueError("Styles can either be 'Coarse', 'Middle' or 'Fine'.")
+
+    @validator("truncation")
+    def truncation_is_in_range(cls, truncation):
+        """Validate that the truncation value is in the correct range."""
+        if -2 <= truncation <= 2:
+            return truncation
+        raise ValueError("Truncation must be between -2 and 2.")
 
 
 # The definiton method options of the generation method.

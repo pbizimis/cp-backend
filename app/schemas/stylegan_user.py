@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Type, Union
 
+from fastapi import HTTPException
 from fastapi_auth0 import Auth0User
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -68,12 +69,15 @@ class StyleGanUser:
             delete_blob_from_gcs("stylegan-images-vectors", image_id_list)
             await delete_all_user_images_from_mongodb(self.mongodb, self.user.id)
         else:
-            # Delete a list of user image data from mongodb and gcs
-            delete_blob_from_gcs("stylegan-images", deletion_options.id_list)
-            delete_blob_from_gcs("stylegan-images-vectors", deletion_options.id_list)
-            await delete_user_images_from_mongodb(
-                self.mongodb, self.user.id, deletion_options.id_list
-            )
+            try:
+                # Delete a list of user image data from mongodb and gcs
+                delete_blob_from_gcs("stylegan-images", deletion_options.id_list)
+                delete_blob_from_gcs("stylegan-images-vectors", deletion_options.id_list)
+                await delete_user_images_from_mongodb(
+                    self.mongodb, self.user.id, deletion_options.id_list
+                )
+            except:
+                raise HTTPException(status_code=404, detail="The list contains not existing image ids.")
 
     def generate_image(self) -> None:
         """Generate a new image with the specified stylegan version and model."""
@@ -81,12 +85,15 @@ class StyleGanUser:
 
     def style_mix_images(self) -> None:
         """Style mix two images with the specified stylegan version and model."""
-        row_image = self.get_seed_or_image_vector(
-            self.stylegan_method_options.row_image
-        )
-        column_image = self.get_seed_or_image_vector(
-            self.stylegan_method_options.column_image
-        )
+        try:
+            row_image = self.get_seed_or_image_vector(
+                self.stylegan_method_options.row_image
+            )
+            column_image = self.get_seed_or_image_vector(
+                self.stylegan_method_options.column_image
+            )
+        except:
+            raise HTTPException(status_code=404, detail="There is no image with this id.")
 
         self.result_images_dict = self.stylegan_model.style_mix(row_image, column_image)
 

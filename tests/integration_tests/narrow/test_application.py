@@ -144,7 +144,7 @@ async def test_application_with_test_client_and_local_dbs(
             model=stylemix_model,
             truncation=1,
             row_image="1234",
-            column_image="image_id",
+            column_image="ea55a984b67346afab069fb6a34adcc3",
             styles="Middle",
         ).dict(),
     )
@@ -154,7 +154,7 @@ async def test_application_with_test_client_and_local_dbs(
     url_prefix = resp.json()["url_prefix"]
     assert image_id == "this_is_hex_uid"
     assert row_image_id == "this_is_hex_uid"
-    assert col_image_id == "image_id"
+    assert col_image_id == "ea55a984b67346afab069fb6a34adcc3"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
     # Style mix seed and already existing image (col, row)
@@ -163,7 +163,7 @@ async def test_application_with_test_client_and_local_dbs(
         json=StyleMix(
             model=stylemix_model,
             truncation=1,
-            row_image="image_id",
+            row_image="ea55a984b67346afab069fb6a34adcc3",
             column_image="1234",
             styles="Coarse",
         ).dict(),
@@ -174,7 +174,7 @@ async def test_application_with_test_client_and_local_dbs(
     url_prefix = resp.json()["url_prefix"]
     assert image_id == "this_is_hex_uid"
     assert col_image_id == "this_is_hex_uid"
-    assert row_image_id == "image_id"
+    assert row_image_id == "ea55a984b67346afab069fb6a34adcc3"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
     # Style mix two already existing images
@@ -183,8 +183,8 @@ async def test_application_with_test_client_and_local_dbs(
         json=StyleMix(
             model=stylemix_model,
             truncation=1,
-            row_image="image_id_1",
-            column_image="image_id_2",
+            row_image="ea55a984b67346afab069fb6a34adcc3",
+            column_image="ea55a984b67346afab069fb6a34adcc3",
             styles="Coarse",
         ).dict(),
     )
@@ -193,8 +193,8 @@ async def test_application_with_test_client_and_local_dbs(
     col_image_id = resp.json()["col_image"]
     url_prefix = resp.json()["url_prefix"]
     assert image_id == "this_is_hex_uid"
-    assert row_image_id == "image_id_1"
-    assert col_image_id == "image_id_2"
+    assert row_image_id == "ea55a984b67346afab069fb6a34adcc3"
+    assert col_image_id == "ea55a984b67346afab069fb6a34adcc3"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
     ###
@@ -220,14 +220,14 @@ async def test_application_with_test_client_and_local_dbs(
         json=StyleMix(
             model=stylemix_model,
             truncation=1,
-            row_image="image_id_1",
-            column_image="image_id_2",
+            row_image="ea55a984b67346afab069fb6a34adcc3",
+            column_image="ea55a984b67346afab069fb6a34adcc3",
             styles="Coarse",
         ).dict(),
     )
     assert image_id == "this_is_hex_uid"
-    assert row_image_id == "image_id_1"
-    assert col_image_id == "image_id_2"
+    assert row_image_id == "ea55a984b67346afab069fb6a34adcc3"
+    assert col_image_id == "ea55a984b67346afab069fb6a34adcc3"
     assert url_prefix == IMAGE_STORAGE_BASE_URL
 
     # Request is blocked
@@ -236,8 +236,8 @@ async def test_application_with_test_client_and_local_dbs(
         json=StyleMix(
             model=stylemix_model,
             truncation=1,
-            row_image="image_id_1",
-            column_image="image_id_2",
+            row_image="ea55a984b67346afab069fb6a34adcc3",
+            column_image="ea55a984b67346afab069fb6a34adcc3",
             styles="Coarse",
         ).dict(),
     )
