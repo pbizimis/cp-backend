@@ -2,6 +2,9 @@
   "stylegan2_ada_models/img31res256fid12.pkl": {
     "sourceUrl": "gs://build-bucket-pkl/img31res256fid12.pkl"
   },
+  "stylegan2_ada_models/img29res256fid10.pkl": {
+    "sourceUrl": "gs://build-bucket-pkl/img29res256fid10.pkl"
+  },
   "vgg16.pt": {
     "sourceUrl": "gs://build-bucket-pkl/vgg16.pt"
   }
