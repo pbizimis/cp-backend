@@ -107,8 +107,8 @@ def test_style_mix_images_stylegan2ada_authenticated_ratelimited(
     resp = client.post(
         stylemix_url, headers={"Content-Type": "application/json"}, data=data
     )
-    assert resp.status_code == 200
-    assert resp.json() == {"message": "You are rate limited!"}
+    assert resp.status_code == 401
+    assert resp.json() == {'detail': 'You exceeded your rate limit of 100 style mix requests per 1:00:00.'}
 
     # Deactivate rate limit
     def override_check_user_ratelimit():
@@ -241,8 +241,8 @@ def test_generate_image_stylegan2ada_authenticated_ratelimited(
     resp = client.post(
         stylemix_url, headers={"Content-Type": "application/json"}, data=data
     )
-    assert resp.status_code == 200
-    assert resp.json() == {"message": "You are rate limited!"}
+    assert resp.status_code == 401
+    assert resp.json() == {"detail": "You exceeded your rate limit of 100 style mix requests per 1:00:00."}
 
     # Deactivate rate limit
     def override_check_user_ratelimit():

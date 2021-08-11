@@ -1,10 +1,10 @@
 from aioredis import Redis
-from fastapi import APIRouter, Depends, Security
+from fastapi import APIRouter, Depends, HTTPException, Security
 from fastapi_auth0 import Auth0User
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.core.auth0 import auth
-from app.core.config import IMAGE_STORAGE_BASE_URL
+from app.core.config import IMAGE_STORAGE_BASE_URL, REDIS_RATELIMIT_PERIOD, REDIS_RATELIMIT_REQUESTS
 from app.db.mongodb import mongodb
 from app.db.redisdb import check_user_ratelimit
 from app.schemas.stylegan2ada import (
@@ -40,7 +40,7 @@ async def style_mix_images_stylegan2ada(
     user = ratelimited_user[0]
     is_ratelimited = ratelimited_user[1]
     if is_ratelimited:
-        return {"message": "You are rate limited!"}
+        raise HTTPException(status_code=401, detail="You exceeded your rate limit of " + str(REDIS_RATELIMIT_REQUESTS) + " style mix requests per " + str(REDIS_RATELIMIT_PERIOD) + ".")
 
     stylegan_user = stylegan_user_class(user, mongodb, StyleGan2ADA, style_mix_options)
 
@@ -72,7 +72,7 @@ async def generate_image_stylegan2ada(
     user = ratelimited_user[0]
     is_ratelimited = ratelimited_user[1]
     if is_ratelimited:
-        return {"message": "You are rate limited!"}
+        raise HTTPException(status_code=401, detail="You exceeded your rate limit of " + str(REDIS_RATELIMIT_REQUESTS) + " generation requests per " + str(REDIS_RATELIMIT_PERIOD) + ".")
 
     stylegan_user = stylegan_user_class(user, mongodb, StyleGan2ADA, generation_options)
 

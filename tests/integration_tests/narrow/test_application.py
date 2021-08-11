@@ -241,7 +241,7 @@ async def test_application_with_test_client_and_local_dbs(
             styles="Coarse",
         ).dict(),
     )
-    resp.json() == {"message": "You are rate limited!"}
+    resp.json() == {"detail": "You exceeded your rate limit of 100 generation requests per 60."}
 
     ###
     # DELETE (CLEANUP)
