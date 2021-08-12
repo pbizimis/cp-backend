@@ -6,6 +6,8 @@ from fastapi import FastAPI, Security
 from fastapi.testclient import TestClient
 from fastapi_auth0 import Auth0, Auth0User
 
+from app.core.config import AUTH0_API, AUTH0_DOMAIN
+
 
 def test_auth0_contract():
     """Test a simple FastAPI app against the Auth0 API. The main application only uses these Auth0 methods."""
@@ -13,7 +15,7 @@ def test_auth0_contract():
     app = FastAPI()
 
     auth = Auth0(
-        domain="capstone-test.eu.auth0.com", api_audience="http://localhost:8000"
+        domain=AUTH0_DOMAIN, api_audience=AUTH0_API
     )
 
     # Define some example routes
