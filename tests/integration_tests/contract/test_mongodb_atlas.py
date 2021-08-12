@@ -4,6 +4,7 @@ import os
 import pytest
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from app.core.config import MONGO_URL
 from app.db.mongodb import (
     delete_all_user_images_from_mongodb,
     delete_user_images_from_mongodb,
@@ -19,8 +20,7 @@ current_date = datetime.datetime(2020, 2, 2, 20, 20, 20)
 async def test_mongodb_correct_cases(mocker):
     """Test application logic against an instance of MongoDB Atlas. This test tests correct cases."""
 
-    conn_str = f"mongodb+srv://admin:{os.environ['MONGOPW']}@cluster0.bgniv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-    mongodb_client = AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
+    mongodb_client = AsyncIOMotorClient(MONGO_URL, serverSelectionTimeoutMS=5000)
     mocker.patch("app.db.mongodb.MONGO_DB_NAME", "testing")
 
     ###
@@ -125,8 +125,7 @@ async def test_mongodb_correct_cases(mocker):
 async def test_mongodb_wrong_cases(mocker):
     """Test application logic against an instance of MongoDB Atlas. This test tests wrong cases."""
 
-    conn_str = f"mongodb+srv://admin:{os.environ['MONGOPW']}@cluster0.bgniv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-    mongodb_client = AsyncIOMotorClient(conn_str, serverSelectionTimeoutMS=5000)
+    mongodb_client = AsyncIOMotorClient(MONGO_URL, serverSelectionTimeoutMS=5000)
     mocker.patch("app.db.mongodb.MONGO_DB_NAME", "testing")
 
     # Data needs to be a pydantic object
